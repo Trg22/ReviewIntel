@@ -1,8 +1,8 @@
 {
-  "buildCommand": "",
+  "buildCommand": "npm run build",
   "devCommand": "vercel dev",
   "outputDirectory": "public",
-  "framework": "static",
+  "framework": "nodejs",
   "functions": {
     "api/**/*.js": {
       "runtime": "nodejs18.x"
