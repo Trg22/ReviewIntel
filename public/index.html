@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReviewIntel - Amazon Review Analysis in Minutes</title>
+  <meta name="description" content="Get actionable insights from Amazon customer reviews in 60-90 seconds. Identify what customers love, areas to improve, and competitive positioning.">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Navigation */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 50px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #3366cc;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 40px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #3366cc;
+    }
+
+    .nav-cta {
+      background: #3366cc;
+      color: white !important;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #3366cc 0%, #2952a3 100%);
+      color: white;
+      padding: 100px 50px;
+      text-align: center;
+      min-height: 600px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .hero h1 {
+      font-size: 56px;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      font-size: 24px;
+      margin-bottom: 40px;
+      opacity: 0.95;
+      max-width: 700px;
+    }
+
+    .cta-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 15px 30px;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: white;
+      color: #3366cc;
+    }
+
+    .btn-primary:hover {
+      background: #f0f0f0;
+      transform: scale(1.05);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid white;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    /* Counter Section */
+    .counter-section {
+      background: #f8f9fa;
+      padding: 40px 50px;
+      text-align: center;
+    }
+
+    .counter-section h3 {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .counter {
+      font-size: 48px;
+      font-weight: bold;
+      color: #3366cc;
+      animation: counter-pulse 2s infinite;
+    }
+
+    @keyframes counter-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Features Section */
+    .features {
+      padding: 80px 50px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 40px;
+    }
+
+    .feature {
+      text-align: center;
+      padding: 30px;
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .feature h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: #3366cc;
+    }
+
+    .feature p {
+      color: #666;
+    }
+
+    /* Sample Report Section */
+    .sample-report {
+      background: #f8f9fa;
+      padding: 80px 50px;
+      text-align: center;
+    }
+
+    .sample-report h2 {
+      font-size: 36px;
+      margin-bottom: 30px;
+      color: #3366cc;
+    }
+
+    .report-preview {
+      background: white;
+      border-radius: 8px;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .report-item {
+      text-align: left;
+      margin: 20px 0;
+      padding: 20px;
+      background: #f0f4ff;
+      border-left: 4px solid #3366cc;
+      border-radius: 4px;
+    }
+
+    .report-item strong {
+      color: #3366cc;
+    }
+
+    /* Pricing Section */
+    .pricing {
+      padding: 80px 50px;
+      background: white;
+    }
+
+    .pricing h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 50px;
+      color: #3366cc;
+    }
+
+    .pricing-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .pricing-card {
+      border: 2px solid #eee;
+      border-radius: 8px;
+      padding: 40px 30px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .pricing-card:hover {
+      border-color: #3366cc;
+      box-shadow: 0 4px 12px rgba(51, 102, 204, 0.1);
+      transform: translateY(-5px);
+    }
+
+    .pricing-card.featured {
+      border-color: #3366cc;
+      background: linear-gradient(135deg, rgba(51, 102, 204, 0.05), rgba(41, 82, 163, 0.05));
+      position: relative;
+      top: -20px;
+    }
+
+    .badge {
+      background: #3366cc;
+      color: white;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+
+    .price {
+      font-size: 36px;
+      font-weight: bold;
+      color: #3366cc;
+      margin: 15px 0;
+    }
+
+    .price-period {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .pricing-card ul {
+      list-style: none;
+      margin: 30px 0;
+      text-align: left;
+    }
+
+    .pricing-card li {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      color: #666;
+    }
+
+    .pricing-card li:before {
+      content: "✓ ";
+      color: #3366cc;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    /* Email Capture */
+    .email-capture {
+      background: linear-gradient(135deg, #3366cc 0%, #2952a3 100%);
+      color: white;
+      padding: 60px 50px;
+      text-align: center;
+    }
+
+    .email-capture h2 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    .email-capture p {
+      font-size: 18px;
+      margin-bottom: 30px;
+    }
+
+    .email-form {
+      display: flex;
+      gap: 10px;
+      max-width: 500px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .email-form input {
+      flex: 1;
+      min-width: 200px;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    .email-form button {
+      padding: 12px 30px;
+      background: white;
+      color: #3366cc;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .email-form button:hover {
+      background: #f0f0f0;
+      transform: scale(1.05);
+    }
+
+    /* Testimonials */
+    .testimonials {
+      padding: 80px 50px;
+      background: #f8f9fa;
+    }
+
+    .testimonials h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 50px;
+      color: #3366cc;
+    }
+
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .testimonial {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .stars {
+      color: #ffc107;
+      margin-bottom: 15px;
+    }
+
+    .testimonial p {
+      color: #666;
+      margin-bottom: 15px;
+      font-style: italic;
+    }
+
+    .testimonial-author {
+      font-weight: bold;
+      color: #3366cc;
+    }
+
+    /* FAQ */
+    .faq {
+      padding: 80px 50px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .faq h2 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 50px;
+      color: #3366cc;
+    }
+
+    .faq-item {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 20px;
+    }
+
+    .faq-item h3 {
+      color: #3366cc;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .faq-item p {
+      color: #666;
+      display: none;
+    }
+
+    .faq-item.active p {
+      display: block;
+    }
+
+    /* Footer */
+    footer {
+      background: #333;
+      color: white;
+      padding: 40px 50px;
+      text-align: center;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav {
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      nav ul {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+      }
+
+      .hero {
+        padding: 50px 20px;
+      }
+
+      .hero h1 {
+        font-size: 36px;
+      }
+
+      .hero p {
+        font-size: 18px;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+      }
+
+      .features,
+      .pricing-cards,
+      .testimonial-grid {
+        padding: 40px 20px;
+      }
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3366cc;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <div class="logo">ReviewIntel</div>
+    <ul>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#" class="nav-cta" onclick="scrollToEmail()">Get Started</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <h1>5-Minute Amazon Review Analysis.</h1>
+    <h1 style="opacity: 0.9;">Actionable Insights in Seconds.</h1>
+    <p>Stop guessing what customers think. Get precise, AI-powered insights from Amazon reviews to improve your product and boost sales.</p>
+    <div class="cta-buttons">
+      <button class="btn btn-primary" onclick="showSampleForm()">Get Free Sample</button>
+      <button class="btn btn-secondary" onclick="scrollToEmail()">See Pricing</button>
+    </div>
+  </section>
+
+  <!-- Counter Section -->
+  <section class="counter-section">
+    <h3>Reports Generated This Month</h3>
+    <div class="counter" id="counter">1,247</div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <h3>Top Themes Identified</h3>
+      <p>Discover the 5 most common positive and negative themes from customer reviews using AI analysis</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3>60-90 Second Analysis</h3>
+      <p>Get results fast. Our AI processes dozens of reviews and delivers insights in under 2 minutes</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📈</div>
+      <h3>Actionable Recommendations</h3>
+      <p>Not just problems - we provide specific, prioritized improvements you can implement immediately</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📑</div>
+      <h3>Professional PDF Reports</h3>
+      <p>Beautiful, branded reports perfect for sharing with your team or investors</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🎯</div>
+      <h3>Competitive Insights</h3>
+      <p>Understand how you compare to competitors mentioned in customer reviews</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">💾</div>
+      <h3>Report History & Tracking</h3>
+      <p>Access all your reports in one dashboard and track improvements over time</p>
+    </div>
+  </section>
+
+  <!-- Sample Report Section -->
+  <section class="sample-report">
+    <h2>What You'll Get</h2>
+    <div class="report-preview">
+      <div class="report-item">
+        <strong>✅ Positive Themes</strong><br>
+        • Excellent quality and durability<br>
+        • Fast shipping<br>
+        • Responsive customer service
+      </div>
+      <div class="report-item">
+        <strong>⚠️ Areas for Improvement</strong><br>
+        • Unclear instruction manual<br>
+        • Packaging quality inconsistent<br>
+        • Limited color options
+      </div>
+      <div class="report-item">
+        <strong>🎯 Recommendations</strong><br>
+        • Improve product manual with visuals (High Impact)<br>
+        • Upgrade packaging materials (Medium Effort)<br>
+        • Expand color variants (Strategic Initiative)
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="pricing" id="pricing">
+    <h2>Simple, Transparent Pricing</h2>
+    <div class="pricing-cards">
+      <div class="pricing-card">
+        <h3>Single Report</h3>
+        <div class="price">$19</div>
+        <div class="price-period">One-time payment</div>
+        <ul>
+          <li>One complete analysis</li>
+          <li>PDF report</li>
+          <li>Email delivery</li>
+          <li>Valid for 1 product</li>
+        </ul>
+        <button class="btn btn-primary" onclick="scrollToEmail()">Get Report</button>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="badge">⭐ EARLY BIRD</div>
+        <h3>Forever Access</h3>
+        <div class="price">$19</div>
+        <div class="price-period">One-time, unlimited reports</div>
+        <ul>
+          <li>Unlimited reports forever</li>
+          <li>All premium features</li>
+          <li>Priority email support</li>
+          <li>First 100 customers only</li>
+        </ul>
+        <button class="btn btn-primary" onclick="scrollToEmail()">Claim Early-Bird</button>
+      </div>
+
+      <div class="pricing-card">
+        <h3>Monthly Pro</h3>
+        <div class="price">$50</div>
+        <div class="price-period">Per month, cancel anytime</div>
+        <ul>
+          <li>Unlimited monthly reports</li>
+          <li>Advanced analytics</li>
+          <li>Priority support</li>
+          <li>Team collaboration</li>
+        </ul>
+        <button class="btn btn-primary" onclick="scrollToEmail()">Subscribe</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Email Capture / CTA -->
+  <section class="email-capture" id="email-capture">
+    <h2>Ready to Transform Your Amazon Reviews?</h2>
+    <p>Get your first report today. No credit card required for samples.</p>
+    <form class="email-form" onsubmit="handleEmailSubmit(event)">
+      <input type="email" id="email-input" placeholder="your@email.com" required>
+      <input type="text" id="name-input" placeholder="Your Name" required>
+      <button type="submit">Get Sample</button>
+    </form>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>Generating your sample report...</p>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials">
+    <h2>What Our Customers Say</h2>
+    <div class="testimonial-grid">
+      <div class="testimonial">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p>"ReviewIntel gave us insights that helped us improve our product rating from 3.8 to 4.6 stars in just 90 days. Amazing ROI!"</p>
+        <div class="testimonial-author">Sarah M. - Amazon Seller</div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p>"As an agency managing multiple seller accounts, ReviewIntel saves us hours of manual analysis. The PDF reports are professional and client-ready."</p>
+        <div class="testimonial-author">Mike D. - E-commerce Agency</div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">⭐⭐⭐⭐⭐</div>
+        <p>"The recommended improvements were spot-on. We implemented 3 suggestions and saw a 15% boost in conversions within a month."</p>
+        <div class="testimonial-author">Jennifer L. - Shopify Store Owner</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <h2>Frequently Asked Questions</h2>
+    
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <h3>How does ReviewIntel analyze reviews?</h3>
+      <p>ReviewIntel uses advanced AI (Claude 3.5 Sonnet) to analyze Amazon review content and metadata. It identifies patterns, themes, and sentiment across 50+ reviews to extract actionable insights. The entire analysis is completed in 60-90 seconds.</p>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <h3>What data do I need to provide?</h3>
+      <p>Simply provide your Amazon product ASIN (the 10-character product ID) or a link to your product page. ReviewIntel will automatically fetch the latest reviews and analyze them.</p>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <h3>Can I analyze competitor products?</h3>
+      <p>Yes! You can analyze any Amazon product by its ASIN. This is great for competitive research and understanding market gaps.</p>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <h3>How are reports delivered?</h3>
+      <p>Reports are delivered as professional PDF documents via email within 2 minutes of completing your analysis. You also get access to view and download reports from your dashboard.</p>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <h3>What's included in a report?</h3>
+      <p>Each report includes: Top 5 positive themes, Top 5 negative themes, 5 specific recommendations with impact/effort ratings, sentiment breakdown, competitor mentions, and trend analysis.</p>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <h3>Is there a free trial?</h3>
+      <p>Yes! Enter your email above to get a free sample report with mock data. This shows you exactly what a full report looks like. No credit card required.</p>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <h3>Can I get a refund?</h3>
+      <p>If you're not satisfied with your report within 7 days, we offer a full refund. For subscriptions, cancel anytime - you'll have access through the end of your billing cycle.</p>
+    </div>
+
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <h3>How often should I run analyses?</h3>
+      <p>We recommend analyzing your products monthly to track sentiment trends and monitor the impact of improvements. Quarterly analysis is minimum for tracking meaningful changes.</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2024 ReviewIntel. All rights reserved. | <a href="#" style="color: white;">Privacy Policy</a> | <a href="#" style="color: white;">Terms of Service</a></p>
+  </footer>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YM50G5CSSC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-YM50G5CSSC');
+
+    // Track events
+    function trackEvent(name, data = {}) {
+      gtag('event', name, data);
+    }
+  </script>
+
+  <!-- Page Scripts -->
+  <script>
+    // Update counter periodically
+    function updateCounter() {
+      const current = parseInt(document.getElementById('counter').innerText.replace(/,/g, ''));
+      const increment = Math.floor(Math.random() * 3) + 1;
+      const newValue = current + increment;
+      document.getElementById('counter').innerText = newValue.toLocaleString();
+      trackEvent('page_view', { section: 'counter_update' });
+    }
+
+    setInterval(updateCounter, 3000);
+
+    // FAQ Toggle
+    function toggleFaq(element) {
+      element.classList.toggle('active');
+      trackEvent('faq_clicked', { question: element.innerText });
+    }
+
+    // Email submission
+    async function handleEmailSubmit(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById('email-input').value;
+      const name = document.getElementById('name-input').value;
+
+      trackEvent('sample_requested', { email });
+
+      // Show loading
+      document.getElementById('loading').classList.add('show');
+
+      try {
+        const response = await fetch('/api/generate-sample', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert(`✅ Sample report sent to ${email}! Check your inbox.`);
+          document.getElementById('email-input').value = '';
+          document.getElementById('name-input').value = '';
+          trackEvent('sample_generated_success', { email });
+        } else {
+          alert('Error: ' + result.error);
+          trackEvent('sample_error', { error: result.error });
+        }
+      } catch (error) {
+        alert('Error sending request: ' + error.message);
+        trackEvent('sample_fetch_error', { error: error.message });
+      } finally {
+        document.getElementById('loading').classList.remove('show');
+      }
+    }
+
+    // Show sample form
+    function showSampleForm() {
+      document.getElementById('email-capture').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('email-input').focus();
+      trackEvent('cta_clicked', { type: 'free_sample' });
+    }
+
+    // Scroll to email section
+    function scrollToEmail() {
+      document.getElementById('email-capture').scrollIntoView({ behavior: 'smooth' });
+      trackEvent('scroll_to_email', {});
+    }
+  </script>
+</body>
+</html>
