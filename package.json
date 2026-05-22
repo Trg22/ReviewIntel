@@ -5,10 +5,10 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "node server-minimal.js",
+    "dev": "node server.js",
     "build": "echo 'Build complete'",
     "test": "node tests/mock-test.js",
-    "start": "node server-minimal.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
