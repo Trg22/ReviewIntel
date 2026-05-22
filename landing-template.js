@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+export const LANDING_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -806,3 +806,4 @@
   </script>
 </body>
 </html>
+`;
