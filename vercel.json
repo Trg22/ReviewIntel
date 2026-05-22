@@ -1,9 +1,4 @@
 {
   "buildCommand": "echo 'Build complete'",
-  "outputDirectory": ".",
-  "functions": {
-    "pages/**/*.js": {
-      "runtime": "nodejs"
-    }
-  }
+  "outputDirectory": "public"
 }
