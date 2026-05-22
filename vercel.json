@@ -3,8 +3,7 @@
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node",
-      "config": { "includeFiles": ["landing-template.js", "api/**"] }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
@@ -12,8 +11,5 @@
       "src": "/(.*)",
       "dest": "server.js"
     }
-  ],
-  "env": {
-    "PORT": "3000"
-  }
+  ]
 }
