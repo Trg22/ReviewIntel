@@ -1,16 +1,10 @@
 {
-  "framework": null,
-  "buildCommand": "echo 'Build complete'",
-  "devCommand": "vercel dev",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "framework": "express",
+  "buildCommand": "npm install",
+  "devCommand": "npm run dev",
   "env": [
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
-    "BREVO_API_KEY",
     "APIFY_TOKEN",
     "CLAUDE_API_KEY",
     "SUPABASE_URL",
