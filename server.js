@@ -12,11 +12,6 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
 // Serve landing page for root
 app.get('/', (req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -35,9 +30,8 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
-app.listen(PORT, HOST, () => {
-  console.log(`ReviewIntel server running on ${HOST}:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`ReviewIntel server running on port ${PORT}`);
 });
 
 export default app;
