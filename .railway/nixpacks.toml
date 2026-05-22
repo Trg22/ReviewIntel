@@ -1,0 +1,6 @@
+[build]
+nixpkgs = ["nodejs"]
+
+[start]
+cmd = "npm start"
+port = 3000
