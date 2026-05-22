@@ -1,0 +1,9 @@
+{
+  "buildCommand": "echo 'Build complete'",
+  "outputDirectory": ".",
+  "functions": {
+    "pages/**/*.js": {
+      "runtime": "nodejs24.x"
+    }
+  }
+}
