@@ -7,16 +7,6 @@
       "runtime": "nodejs18.x"
     }
   },
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
-    }
-  ],
   "env": [
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
