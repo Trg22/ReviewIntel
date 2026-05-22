@@ -1,4 +1,5 @@
 {
+  "framework": null,
   "buildCommand": "echo 'Build complete'",
   "devCommand": "vercel dev",
   "functions": {
