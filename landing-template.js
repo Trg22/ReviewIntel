@@ -775,7 +775,7 @@ export const LANDING_HTML = `<!DOCTYPE html>
         const result = await response.json();
 
         if (result.success) {
-          alert(`✅ Sample report sent to ${email}! Check your inbox.`);
+          alert('✅ Sample report sent to ' + email + '! Check your inbox.');
           document.getElementById('email-input').value = '';
           document.getElementById('name-input').value = '';
           trackEvent('sample_generated_success', { email });

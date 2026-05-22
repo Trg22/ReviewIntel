@@ -1,0 +1,28 @@
+name = "reviewintel"
+type = "javascript"
+account_id = "831d04cd40beece3aa9b898f7d5b8b80"
+workers_dev = true
+routes = [
+  { pattern = "reviewintel.com/api/*", zone_name = "reviewintel.com" },
+  { pattern = "*.reviewintel.com/api/*", zone_name = "reviewintel.com" }
+]
+
+[build]
+command = "npm run build"
+cwd = "./"
+watch_paths = ["src/**/*.js"]
+
+[build.upload]
+format = "service-worker"
+main = "./src/index.js"
+
+[env.production]
+route = "reviewintel.com/*"
+zone_id = "YOUR_ZONE_ID"
+
+[[env.production.kv_namespaces]]
+binding = "CACHE"
+id = "YOUR_KV_ID"
+
+[env.development]
+vars = { ENVIRONMENT = "development" }
