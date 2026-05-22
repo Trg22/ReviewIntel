@@ -2,9 +2,16 @@
  * Generate Sample Report - API Endpoint
  * 
  * POST /api/generate-sample
+ * GET  /api/generate-sample?page=1&limit=10 (for paginated sample reviews)
  * 
- * Accepts email capture and generates a free sample report PDF
+ * POST: Accepts email capture and generates a free sample report PDF
  * Sends via Brevo email service
+ * 
+ * GET: Returns paginated sample reviews from Supabase
+ * Query params:
+ *   - page: Page number (default: 1)
+ *   - limit: Items per page (default: 10, max: 100)
+ *   - asin: Optional ASIN filter
  * 
  * This endpoint demonstrates the full report generation pipeline
  */
@@ -18,25 +25,101 @@ import { saveReport, logAnalyticsEvent } from "./utils/database.js";
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  try {
+    if (req.method === "GET") {
+      return await handleGetSampleReviews(req, res);
+    } else if (req.method === "POST") {
+      return await handleGenerateSample(req, res);
+    } else {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+  } catch (error) {
+    console.error("Error in generate-sample endpoint:", error);
+    return res.status(500).json({
+      error: "Internal server error",
+      details: error.message,
+    });
+  }
+}
+
+/**
+ * Handle GET request - return paginated sample reviews
+ */
+async function handleGetSampleReviews(req, res) {
+  const page = Math.max(1, parseInt(req.query.page || "1"));
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit || "10")));
+  const offset = (page - 1) * limit;
+
+  try {
+    // Generate mock reviews for demonstration
+    const allReviews = generateMockReviews(100); // Generate more reviews for pagination
+
+    // Apply ASIN filter if provided
+    const asin = req.query.asin;
+    let filteredReviews = allReviews;
+    if (asin) {
+      filteredReviews = allReviews.filter((r) => r.asin === asin);
+    }
+
+    // Apply pagination
+    const paginatedReviews = filteredReviews.slice(offset, offset + limit);
+
+    // Calculate pagination metadata
+    const totalCount = filteredReviews.length;
+    const totalPages = Math.ceil(totalCount / limit);
+    const hasNextPage = page < totalPages;
+    const hasPreviousPage = page > 1;
+
+    return res.status(200).json({
+      success: true,
+      data: paginatedReviews,
+      pagination: {
+        page,
+        limit,
+        offset,
+        totalCount,
+        totalPages,
+        hasNextPage,
+        hasPreviousPage,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error fetching sample reviews:", error);
+    return res.status(500).json({
+      error: "Failed to fetch sample reviews",
+      details: error.message,
+    });
+  }
+}
+
+/**
+ * Handle POST request - generate and send sample report
+ */
+async function handleGenerateSample(req, res) {
+  const { email, name } = req.body;
+
+  if (!email || !name) {
+    return res.status(400).json({
+      error: "Missing required fields",
+      required: ["email", "name"],
+    });
+  }
+
+  // Validate email format
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: "Invalid email format" });
   }
 
   try {
-    const { email, name } = req.body;
-
-    if (!email || !name) {
-      return res.status(400).json({ error: "Missing email or name" });
-    }
-
-    console.log(`Generating sample report for ${email}`);
+    console.log(`[generate-sample] Generating sample report for ${email}`);
 
     // Log analytics event
     await logAnalyticsEvent({
@@ -44,7 +127,7 @@ export default async function handler(req, res) {
       userEmail: email,
       data: { name },
       ipAddress: req.headers["x-forwarded-for"] || "unknown",
-      userAgent: req.headers["user-agent"]
+      userAgent: req.headers["user-agent"],
     });
 
     // Generate mock reviews
@@ -72,7 +155,7 @@ export default async function handler(req, res) {
       subject: "Your Free ReviewIntel Sample Report 📊",
       html: emailTemplate,
       attachment: pdfBuffer,
-      attachmentName: "ReviewIntel-Sample-Report.pdf"
+      attachmentName: "ReviewIntel-Sample-Report.pdf",
     });
 
     // Save to database
@@ -82,20 +165,21 @@ export default async function handler(req, res) {
       productName: "Example Product",
       analysis,
       pdfUrl: "https://review-intel.com/reports/sample",
-      isSampleReport: true
+      isSampleReport: true,
     });
 
     return res.status(200).json({
       success: true,
       message: "Sample report generated and sent to your email",
       email,
-      messageId: emailResult.messageId
+      messageId: emailResult?.messageId,
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error("Error generating sample report:", error);
     return res.status(500).json({
       error: "Failed to generate sample report",
-      details: error.message
+      details: error.message,
     });
   }
 }

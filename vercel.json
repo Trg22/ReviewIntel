@@ -1,4 +1,28 @@
 {
   "buildCommand": "echo 'Build complete'",
-  "outputDirectory": "public"
+  "outputDirectory": "public",
+  "functions": {
+    "api/status.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 30
+    },
+    "api/dashboard.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 30
+    },
+    "api/generate-sample.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 60
+    },
+    "api/checkout-webhook.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
 }
