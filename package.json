@@ -2,8 +2,7 @@
   "name": "review-intel",
   "version": "1.0.0",
   "description": "ReviewIntel MVP - Amazon Review Analysis Platform",
-  "main": "server.js",
-  "type": "module",
+  "main": "pages/index.js",
   "scripts": {
     "dev": "node server.js",
     "build": "echo 'Build complete'",
