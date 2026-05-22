@@ -4,41 +4,29 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Import API handlers
-import generateSampleHandler from './generate-sample.js';
-import generateReportHandler from './generate-report.js';
-import checkoutWebhookHandler from './checkout-webhook.js';
-import dashboardHandler from './dashboard.js';
+import generateSampleHandler from './api/generate-sample.js';
+import generateReportHandler from './api/generate-report.js';
+import checkoutWebhookHandler from './api/checkout-webhook.js';
+import dashboardHandler from './api/dashboard.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'landing')));
-
-// API Routes
-app.post('/api/generate-sample', async (req, res) => {
-  await generateSampleHandler(req, res);
-});
-
-app.post('/api/generate-report', async (req, res) => {
-  await generateReportHandler(req, res);
-});
-
-app.post('/api/checkout-webhook', async (req, res) => {
-  await checkoutWebhookHandler(req, res);
-});
-
-app.get('/api/dashboard/:userId', async (req, res) => {
-  await dashboardHandler(req, res);
-});
 
 // Serve landing page for root
 app.get('/', (req, res) => {
-  const landingPath = path.join(__dirname, 'landing.html');
+  const landingPath = path.join(__dirname, 'landing/landing.html');
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.sendFile(landingPath);
 });
+
+// API Routes
+app.post('/api/generate-sample', generateSampleHandler);
+app.post('/api/generate-report', generateReportHandler);
+app.post('/api/checkout-webhook', checkoutWebhookHandler);
+app.get('/api/dashboard/:userId', dashboardHandler);
 
 // 404 fallback
 app.use((req, res) => {
