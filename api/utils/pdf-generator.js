@@ -1,8 +1,7 @@
 /**
- * PDF Report Generator for ReviewIntel
- * 
- * Generates professional PDF reports with analysis results using PDFKit
- * PDFKit has native Unicode support, unlike pdf-lib's WinAnsi encoding
+ * PDF Report Generator for ReviewIntel - Built with PDFKit
+ * Last rebuilt: 1779497390
+ * Using PDFKit for full Unicode/emoji support
  */
 
 import PDFDocument from "pdfkit";
