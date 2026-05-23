@@ -213,11 +213,11 @@ export function getWelcomeEmailTemplate(customerName) {
 
             <h3>Sample Insights You'll Get:</h3>
             <ul>
-              <li>✅ Top 5 positive themes (what customers love)</li>
-              <li>❌ Top 5 negative themes (what needs improvement)</li>
-              <li>🎯 Specific, actionable recommendations</li>
-              <li>📊 Sentiment breakdown and trends</li>
-              <li>🏆 Competitive positioning analysis</li>
+              <li>+ Top 5 positive themes (what customers love)</li>
+              <li>- Top 5 negative themes (what needs improvement)</li>
+              <li>→ Specific, actionable recommendations</li>
+              <li>* Sentiment breakdown and trends</li>
+              <li>* Competitive positioning analysis</li>
             </ul>
 
             <p><strong>Early-bird pricing:</strong> Get unlimited reports for just $19 one-time (limited to first 100 customers)</p>

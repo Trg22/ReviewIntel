@@ -152,7 +152,7 @@ async function handleGenerateSample(req, res) {
 
     const emailResult = await sendEmail({
       to: email,
-      subject: "Your Free ReviewIntel Sample Report 📊",
+      subject: "Your Free ReviewIntel Sample Report",
       html: emailTemplate,
       attachment: pdfBuffer,
       attachmentName: "ReviewIntel-Sample-Report.pdf",

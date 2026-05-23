@@ -89,7 +89,7 @@ export default async function handler(req, res) {
 
     const emailResult = await sendEmail({
       to: email,
-      subject: `Your ReviewIntel Report for ${productName.substring(0, 30)}... 📊`,
+      subject: `Your ReviewIntel Report for ${productName.substring(0, 30)}...`,
       html: emailTemplate,
       attachment: pdfBuffer,
       attachmentName: `ReviewIntel-Report-${asin}.pdf`
