@@ -113,6 +113,27 @@ app.use((req, res) => {
   });
 });
 
+// Global error handler for async errors
+app.use((err, req, res, next) => {
+  console.error("Express error handler caught:", err);
+  res.status(err.status || 500).json({
+    error: "Server error",
+    message: err.message,
+    stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
+  });
+});
+
+// Catch unhandled promise rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+// Catch uncaught exceptions
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  process.exit(1);
+});
+
 // Start server on all environments (required for Railway)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
