@@ -113,19 +113,17 @@ app.use((req, res) => {
   });
 });
 
-// Only start server in local/non-Vercel environment
-if (process.env.NODE_ENV !== "production") {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`ReviewIntel server running on port ${PORT}`);
-    console.log(`Available endpoints:`);
-    console.log(`  GET  /api/status`);
-    console.log(`  GET  /api/health`);
-    console.log(`  GET  /api/dashboard?email=user@example.com`);
-    console.log(`  GET  /api/generate-sample?page=1&limit=10`);
-    console.log(`  POST /api/generate-sample`);
-    console.log(`  POST /api/checkout-webhook`);
-  });
-}
+// Start server on all environments (required for Railway)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`ReviewIntel server running on port ${PORT}`);
+  console.log(`Available endpoints:`);
+  console.log(`  GET  /api/status`);
+  console.log(`  GET  /api/health`);
+  console.log(`  GET  /api/dashboard?email=user@example.com`);
+  console.log(`  GET  /api/generate-sample?page=1&limit=10`);
+  console.log(`  POST /api/generate-sample`);
+  console.log(`  POST /api/checkout-webhook`);
+});
 
 export default app;
