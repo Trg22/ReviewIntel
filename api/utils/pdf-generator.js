@@ -18,6 +18,15 @@ import { PDFDocument, rgb, degrees } from "pdf-lib";
 export async function generatePdfReport(analysis, productName = "Amazon Product", asin = "B0EXAMPLE") {
   const pdf = await PDFDocument.create();
   
+  // Debug: Check for emoji in incoming analysis data
+  const analysisStr = JSON.stringify(analysis);
+  if (/[^\x00-\x7F]/.test(analysisStr)) {
+    console.error("[PDF] ⚠️ WARNING: Non-ASCII characters found in analysis data!");
+    console.error("[PDF] First 500 chars:", analysisStr.substring(0, 500));
+    // Sanitize the analysis data
+    analysis = sanitizeAnalysisData(analysis);
+  }
+  
   // Add pages and content
   addCoverPage(pdf, productName, asin, analysis);
   addSummaryPage(pdf, analysis);
@@ -435,6 +444,41 @@ function sanitizeForPDF(text) {
   if (!text) return text;
   return String(text)
     .replace(/[^\x00-\x7F]/g, ''); // Remove all non-ASCII characters
+}
+
+/**
+ * Deep sanitize all text fields in analysis data to remove non-ASCII chars
+ */
+function sanitizeAnalysisData(analysis) {
+  if (!analysis) return analysis;
+  
+  const sanitized = JSON.parse(JSON.stringify(analysis)); // Deep clone
+  
+  if (sanitized.positiveThemes && Array.isArray(sanitized.positiveThemes)) {
+    sanitized.positiveThemes.forEach(item => {
+      if (item.theme) item.theme = sanitizeForPDF(item.theme);
+    });
+  }
+  
+  if (sanitized.negativeThemes && Array.isArray(sanitized.negativeThemes)) {
+    sanitized.negativeThemes.forEach(item => {
+      if (item.theme) item.theme = sanitizeForPDF(item.theme);
+    });
+  }
+  
+  if (sanitized.improvements && Array.isArray(sanitized.improvements)) {
+    sanitized.improvements.forEach(item => {
+      if (item.improvement) item.improvement = sanitizeForPDF(item.improvement);
+    });
+  }
+  
+  if (sanitized.competitorsMentioned && Array.isArray(sanitized.competitorsMentioned)) {
+    sanitized.competitorsMentioned.forEach(item => {
+      if (item.competitor) item.competitor = sanitizeForPDF(item.competitor);
+    });
+  }
+  
+  return sanitized;
 }
 
 /**
