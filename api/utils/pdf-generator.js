@@ -36,6 +36,10 @@ function addCoverPage(pdf, productName, asin, analysis) {
   const page = pdf.addPage([612, 792]); // Letter size
   const { width, height } = page.getSize();
 
+  // Debug: log content before drawing
+  console.log("[PDF] Cover Page - Product:", productName, "ASIN:", asin);
+  console.log("[PDF] Analysis avgRating:", analysis.averageRating);
+
   // Title
   page.drawText("ReviewIntel Report", {
     x: 50,
@@ -213,7 +217,7 @@ function addPositiveThemesPage(pdf, analysis) {
   const themes = analysis.positiveThemes || [];
   themes.forEach((item, index) => {
     // Theme name
-    page.drawText(`${index + 1}. ${item.theme}`, {
+    page.drawText(sanitizeForPDF(`${index + 1}. ${item.theme}`), {
       x: 50,
       y: yPosition,
       size: 14,
@@ -277,7 +281,7 @@ function addNegativeThemesPage(pdf, analysis) {
 
   const themes = analysis.negativeThemes || [];
   themes.forEach((item, index) => {
-    page.drawText(`${index + 1}. ${item.theme}`, {
+    page.drawText(sanitizeForPDF(`${index + 1}. ${item.theme}`), {
       x: 50,
       y: yPosition,
       size: 14,
@@ -339,7 +343,7 @@ function addImprovementsPage(pdf, analysis) {
 
   const improvements = analysis.improvements || [];
   improvements.forEach((item, index) => {
-    page.drawText(`${index + 1}. ${item.improvement}`, {
+    page.drawText(sanitizeForPDF(`${index + 1}. ${item.improvement}`), {
       x: 50,
       y: yPosition,
       size: 12,
@@ -424,10 +428,19 @@ function addFooterPage(pdf) {
 }
 
 /**
+ * Utility: Remove or replace non-WinAnsi characters
+ * pdf-lib uses WinAnsi encoding which doesn't support emoji or some unicode
+ */
+function sanitizeForPDF(text) {
+  if (!text) return text;
+  return String(text)
+    .replace(/[^\x00-\x7F]/g, ''); // Remove all non-ASCII characters
+}
+
+/**
  * Utility: Wrap text to fit within width
  */
 function wrapText(text, maxCharsPerLine = 80) {
-  const words = text.split(' ');
   const lines = [];
   let currentLine = '';
 
