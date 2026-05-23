@@ -1,11 +1,12 @@
 /**
  * PDF Report Generator for ReviewIntel
  * 
- * Generates professional PDF reports with analysis results, charts, and recommendations
- * Uses pdf-lib for reliable PDF creation with embedded styling and images
+ * Generates professional PDF reports with analysis results using PDFKit
+ * PDFKit has native Unicode support, unlike pdf-lib's WinAnsi encoding
  */
 
-import { PDFDocument, rgb, degrees } from "pdf-lib";
+import PDFDocument from "pdfkit";
+import { Readable } from "stream";
 
 /**
  * Generate a professional review analysis PDF report
@@ -16,151 +17,102 @@ import { PDFDocument, rgb, degrees } from "pdf-lib";
  * @returns {Promise<Buffer>} PDF buffer
  */
 export async function generatePdfReport(analysis, productName = "Amazon Product", asin = "B0EXAMPLE") {
-  const pdf = await PDFDocument.create();
-  
-  // Debug: Check for emoji in incoming analysis data
-  const analysisStr = JSON.stringify(analysis);
-  if (/[^\x00-\x7F]/.test(analysisStr)) {
-    console.error("[PDF] ⚠️ WARNING: Non-ASCII characters found in analysis data!");
-    console.error("[PDF] First 500 chars:", analysisStr.substring(0, 500));
-    // Sanitize the analysis data
-    analysis = sanitizeAnalysisData(analysis);
-  }
-  
-  // Add pages and content
-  addCoverPage(pdf, productName, asin, analysis);
-  addSummaryPage(pdf, analysis);
-  addPositiveThemesPage(pdf, analysis);
-  addNegativeThemesPage(pdf, analysis);
-  addImprovementsPage(pdf, analysis);
-  addFooterPage(pdf);
+  return new Promise((resolve, reject) => {
+    const buffers = [];
+    const doc = new PDFDocument({
+      size: "Letter",
+      margins: { top: 50, bottom: 50, left: 50, right: 50 }
+    });
 
-  return await pdf.save();
+    // Collect PDF data chunks
+    doc.on("data", chunk => buffers.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(buffers)));
+    doc.on("error", reject);
+
+    try {
+      // Add pages
+      addCoverPage(doc, productName, asin, analysis);
+      addSummaryPage(doc, analysis);
+      addPositiveThemesPage(doc, analysis);
+      addNegativeThemesPage(doc, analysis);
+      addImprovementsPage(doc, analysis);
+      addFooterPage(doc);
+
+      doc.end();
+    } catch (error) {
+      doc.destroy();
+      reject(error);
+    }
+  });
 }
 
 /**
  * Add cover page to PDF
  */
-function addCoverPage(pdf, productName, asin, analysis) {
-  const page = pdf.addPage([612, 792]); // Letter size
-  const { width, height } = page.getSize();
+function addCoverPage(doc, productName, asin, analysis) {
+  doc.fontSize(48)
+    .font("Helvetica-Bold")
+    .fillColor("#0466CC")
+    .text("ReviewIntel Report", { align: "center" });
 
-  // Debug: log content before drawing
-  console.log("[PDF] Cover Page - Product:", productName, "ASIN:", asin);
-  console.log("[PDF] Analysis avgRating:", analysis.averageRating);
+  doc.moveDown(0.5);
+  doc.fontSize(18)
+    .font("Helvetica")
+    .fillColor("#333")
+    .text(productName, { align: "center" });
 
-  // Title
-  page.drawText("ReviewIntel Report", {
-    x: 50,
-    y: height - 100,
-    size: 48,
-    color: rgb(0.2, 0.4, 0.8),
-    maxWidth: width - 100
+  doc.moveDown(0.3);
+  doc.fontSize(12)
+    .fillColor("#666")
+    .text(`ASIN: ${asin}`, { align: "center" });
+
+  doc.moveDown(1.5);
+
+  // Key metrics preview
+  const metrics = [
+    `Average Rating: ${(analysis.averageRating || 4.2).toFixed(1)}/5.0`,
+    `Total Reviews: ${analysis.totalReviewsAnalyzed || 50}`,
+    `Analysis Date: ${new Date().toLocaleDateString()}`
+  ];
+
+  doc.fontSize(12).fillColor("#333");
+  metrics.forEach(metric => {
+    doc.text(metric, { indent: 40 });
+    doc.moveDown(0.3);
   });
 
-  // Product info
-  page.drawText(`Product: ${productName.substring(0, 60)}`, {
-    x: 50,
-    y: height - 180,
-    size: 24,
-    color: rgb(0.3, 0.3, 0.3),
-    maxWidth: width - 100
-  });
+  doc.moveDown(1);
+  doc.fontSize(11)
+    .fillColor("#555")
+    .text(
+      "This report provides a comprehensive analysis of customer reviews for this product. The analysis identifies key themes customers appreciate, areas for improvement, and competitive positioning.",
+      { align: "left", width: 470 }
+    );
 
-  page.drawText(`ASIN: ${asin}`, {
-    x: 50,
-    y: height - 220,
-    size: 14,
-    color: rgb(0.5, 0.5, 0.5)
-  });
-
-  // Overall rating
-  const avgRating = analysis.averageRating || 4.2;
-  page.drawText(`Average Rating: ${avgRating.toFixed(1)}/5.0`, {
-    x: 50,
-    y: height - 260,
-    size: 20,
-    color: rgb(0.2, 0.8, 0.2)
-  });
-
-  // Sentiment summary
-  const { positive, neutral, negative } = analysis.sentimentBreakdown || {
-    positive: 56,
-    neutral: 28,
-    negative: 16
-  };
-
-  page.drawText("Sentiment Breakdown", {
-    x: 50,
-    y: height - 320,
-    size: 18,
-    color: rgb(0.2, 0.4, 0.8)
-  });
-
-  page.drawText(`Positive: ${positive}%`, {
-    x: 70,
-    y: height - 350,
-    size: 14,
-    color: rgb(0.2, 0.8, 0.2)
-  });
-
-  page.drawText(`Neutral: ${neutral}%`, {
-    x: 70,
-    y: height - 375,
-    size: 14,
-    color: rgb(0.7, 0.7, 0)
-  });
-
-  page.drawText(`Negative: ${negative}%`, {
-    x: 70,
-    y: height - 400,
-    size: 14,
-    color: rgb(0.8, 0.2, 0.2)
-  });
-
-  // Footer
-  page.drawText(`Report Generated: ${new Date().toLocaleDateString()}`, {
-    x: 50,
-    y: 50,
-    size: 10,
-    color: rgb(0.7, 0.7, 0.7)
-  });
-
-  page.drawText("ReviewIntel - Amazon Review Analysis Platform", {
-    x: 50,
-    y: 30,
-    size: 10,
-    color: rgb(0.7, 0.7, 0.7)
-  });
+  doc.addPage();
 }
 
 /**
  * Add summary page with key metrics
  */
-function addSummaryPage(pdf, analysis) {
-  const page = pdf.addPage([612, 792]);
-  const { width, height } = page.getSize();
-  let yPosition = height - 50;
+function addSummaryPage(doc, analysis) {
+  doc.fontSize(28)
+    .font("Helvetica-Bold")
+    .fillColor("#0466CC")
+    .text("Executive Summary");
 
-  // Title
-  page.drawText("Executive Summary", {
-    x: 50,
-    y: yPosition,
-    size: 28,
-    color: rgb(0.2, 0.4, 0.8)
-  });
+  doc.moveDown(0.8);
 
-  yPosition -= 60;
+  // Key metrics section
+  doc.fontSize(14)
+    .font("Helvetica-Bold")
+    .fillColor("#333")
+    .text("Key Metrics");
 
-  // Key metrics
-  page.drawText("Key Metrics", {
-    x: 50,
-    y: yPosition,
-    size: 16,
-    color: rgb(0.2, 0.4, 0.8)
-  });
-
-  yPosition -= 30;
+  doc.moveDown(0.3);
+  doc.fontSize(12)
+    .font("Helvetica")
+    .fillColor("#555");
 
   const metrics = [
     `Total Reviews Analyzed: ${analysis.totalReviewsAnalyzed || 50}`,
@@ -170,335 +122,198 @@ function addSummaryPage(pdf, analysis) {
   ];
 
   metrics.forEach(metric => {
-    page.drawText(sanitizeForPDF(metric), {
-      x: 70,
-      y: yPosition,
-      size: 12,
-      color: rgb(0.3, 0.3, 0.3)
-    });
-    yPosition -= 25;
+    doc.text(metric, { indent: 20 });
+    doc.moveDown(0.25);
   });
 
-  yPosition -= 20;
+  doc.moveDown(0.8);
 
-  // Overview text
-  page.drawText("Overview", {
-    x: 50,
-    y: yPosition,
-    size: 16,
-    color: rgb(0.2, 0.4, 0.8)
-  });
+  // Overview section
+  doc.fontSize(14)
+    .font("Helvetica-Bold")
+    .fillColor("#333")
+    .text("Overview");
 
-  yPosition -= 30;
+  doc.moveDown(0.3);
+  doc.fontSize(11)
+    .font("Helvetica")
+    .fillColor("#555")
+    .text(
+      "This report provides a comprehensive analysis of customer reviews for this product. The analysis identifies key themes customers appreciate, areas for improvement, and competitive positioning. Use these insights to enhance product quality, customer satisfaction, and market competitiveness.",
+      { align: "left", width: 470 }
+    );
 
-  const overview = `This report provides a comprehensive analysis of customer reviews for this product. The analysis identifies key themes customers appreciate, areas for improvement, and competitive positioning. Use these insights to enhance product quality, customer satisfaction, and market competitiveness.`;
-
-  const wrappedOverview = wrapText(overview, 80);
-  wrappedOverview.forEach(line => {
-    page.drawText(sanitizeForPDF(line), {
-      x: 70,
-      y: yPosition,
-      size: 11,
-      color: rgb(0.3, 0.3, 0.3),
-      maxWidth: width - 140
-    });
-    yPosition -= 20;
-  });
+  doc.addPage();
 }
 
 /**
  * Add positive themes page
  */
-function addPositiveThemesPage(pdf, analysis) {
-  const page = pdf.addPage([612, 792]);
-  const { width, height } = page.getSize();
-  let yPosition = height - 50;
+function addPositiveThemesPage(doc, analysis) {
+  doc.fontSize(28)
+    .font("Helvetica-Bold")
+    .fillColor("#22B14C")
+    .text("What Customers Love");
 
-  page.drawText("What Customers Love", {
-    x: 50,
-    y: yPosition,
-    size: 28,
-    color: rgb(0.2, 0.8, 0.2)
-  });
-
-  yPosition -= 60;
+  doc.moveDown(0.8);
 
   const themes = analysis.positiveThemes || [];
   themes.forEach((item, index) => {
-    // Theme name
-    page.drawText(sanitizeForPDF(`${index + 1}. ${item.theme}`), {
-      x: 50,
-      y: yPosition,
-      size: 14,
-      color: rgb(0.2, 0.4, 0.8)
-    });
+    doc.fontSize(14)
+      .font("Helvetica-Bold")
+      .fillColor("#0466CC")
+      .text(`${index + 1}. ${item.theme}`);
 
-    yPosition -= 25;
+    doc.moveDown(0.2);
+    doc.fontSize(10)
+      .font("Helvetica")
+      .fillColor("#666")
+      .text(`Frequency: ${item.frequency} mentions | Confidence: ${(item.confidence * 100).toFixed(0)}%`);
 
-    // Frequency and confidence
-    page.drawText(sanitizeForPDF(`Frequency: ${item.frequency} mentions | Confidence: ${(item.confidence * 100).toFixed(0)}%`), {
-      x: 70,
-      y: yPosition,
-      size: 11,
-      color: rgb(0.5, 0.5, 0.5)
-    });
-
-    yPosition -= 30;
+    doc.moveDown(0.4);
   });
+
+  doc.moveDown(0.5);
 
   // Recommendation
-  yPosition -= 20;
-  page.drawText("Recommendation:", {
-    x: 50,
-    y: yPosition,
-    size: 12,
-    color: rgb(0.2, 0.4, 0.8)
-  });
+  doc.fontSize(12)
+    .font("Helvetica-Bold")
+    .fillColor("#0466CC")
+    .text("Recommendation:");
 
-  yPosition -= 25;
+  doc.moveDown(0.2);
+  doc.fontSize(11)
+    .font("Helvetica")
+    .fillColor("#555")
+    .text(
+      "Continue emphasizing these strengths in your product marketing and communications. These are key differentiators that justify premium positioning and build customer loyalty.",
+      { align: "left", width: 470 }
+    );
 
-  const recommendation = `Continue emphasizing these strengths in your product marketing and communications. These are key differentiators that justify premium positioning and build customer loyalty.`;
-  const wrapped = wrapText(recommendation, 80);
-  wrapped.forEach(line => {
-    page.drawText(sanitizeForPDF(line), {
-      x: 70,
-      y: yPosition,
-      size: 11,
-      color: rgb(0.3, 0.3, 0.3),
-      maxWidth: width - 140
-    });
-    yPosition -= 18;
-  });
+  doc.addPage();
 }
 
 /**
  * Add negative themes page
  */
-function addNegativeThemesPage(pdf, analysis) {
-  const page = pdf.addPage([612, 792]);
-  const { width, height } = page.getSize();
-  let yPosition = height - 50;
+function addNegativeThemesPage(doc, analysis) {
+  doc.fontSize(28)
+    .font("Helvetica-Bold")
+    .fillColor("#C1272D")
+    .text("Areas for Improvement");
 
-  page.drawText("Areas for Improvement", {
-    x: 50,
-    y: yPosition,
-    size: 28,
-    color: rgb(0.8, 0.2, 0.2)
-  });
-
-  yPosition -= 60;
+  doc.moveDown(0.8);
 
   const themes = analysis.negativeThemes || [];
   themes.forEach((item, index) => {
-    page.drawText(sanitizeForPDF(`${index + 1}. ${item.theme}`), {
-      x: 50,
-      y: yPosition,
-      size: 14,
-      color: rgb(0.8, 0.2, 0.2)
-    });
+    doc.fontSize(14)
+      .font("Helvetica-Bold")
+      .fillColor("#C1272D")
+      .text(`${index + 1}. ${item.theme}`);
 
-    yPosition -= 25;
+    doc.moveDown(0.2);
+    doc.fontSize(10)
+      .font("Helvetica")
+      .fillColor("#666")
+      .text(`Mentions: ${item.frequency} | Confidence: ${(item.confidence * 100).toFixed(0)}%`);
 
-    page.drawText(sanitizeForPDF(`Mentions: ${item.frequency} | Confidence: ${(item.confidence * 100).toFixed(0)}%`), {
-      x: 70,
-      y: yPosition,
-      size: 11,
-      color: rgb(0.5, 0.5, 0.5)
-    });
-
-    yPosition -= 30;
+    doc.moveDown(0.4);
   });
 
-  yPosition -= 20;
-  page.drawText("Action Items:", {
-    x: 50,
-    y: yPosition,
-    size: 12,
-    color: rgb(0.2, 0.4, 0.8)
-  });
+  doc.moveDown(0.5);
 
-  yPosition -= 25;
+  // Action items
+  doc.fontSize(12)
+    .font("Helvetica-Bold")
+    .fillColor("#0466CC")
+    .text("Action Items:");
 
-  const action = `Prioritize addressing these issues to improve customer satisfaction and reduce negative reviews. Even small improvements in these areas can significantly boost your average rating.`;
-  const wrapped = wrapText(action, 80);
-  wrapped.forEach(line => {
-    page.drawText(sanitizeForPDF(line), {
-      x: 70,
-      y: yPosition,
-      size: 11,
-      color: rgb(0.3, 0.3, 0.3),
-      maxWidth: width - 140
-    });
-    yPosition -= 18;
-  });
+  doc.moveDown(0.2);
+  doc.fontSize(11)
+    .font("Helvetica")
+    .fillColor("#555")
+    .text(
+      "Prioritize addressing these issues to improve customer satisfaction and reduce negative reviews. Even small improvements in these areas can significantly boost your average rating.",
+      { align: "left", width: 470 }
+    );
+
+  doc.addPage();
 }
 
 /**
  * Add improvements/recommendations page
  */
-function addImprovementsPage(pdf, analysis) {
-  const page = pdf.addPage([612, 792]);
-  const { width, height } = page.getSize();
-  let yPosition = height - 50;
+function addImprovementsPage(doc, analysis) {
+  doc.fontSize(28)
+    .font("Helvetica-Bold")
+    .fillColor("#0466CC")
+    .text("Recommended Actions");
 
-  page.drawText("Recommended Actions", {
-    x: 50,
-    y: yPosition,
-    size: 28,
-    color: rgb(0.2, 0.4, 0.8)
-  });
-
-  yPosition -= 60;
+  doc.moveDown(0.8);
 
   const improvements = analysis.improvements || [];
   improvements.forEach((item, index) => {
-    page.drawText(sanitizeForPDF(`${index + 1}. ${item.improvement}`), {
-      x: 50,
-      y: yPosition,
-      size: 12,
-      color: rgb(0.2, 0.4, 0.8)
-    });
+    doc.fontSize(12)
+      .font("Helvetica-Bold")
+      .fillColor("#0466CC")
+      .text(`${index + 1}. ${item.improvement}`);
 
-    yPosition -= 22;
+    doc.moveDown(0.2);
 
-    const impactColor = item.impact === 'high' ? rgb(0.2, 0.8, 0.2) : item.impact === 'medium' ? rgb(0.7, 0.7, 0) : rgb(0.7, 0.7, 0.7);
-    const effortColor = item.effort === 'high' ? rgb(0.8, 0.2, 0.2) : item.effort === 'medium' ? rgb(0.7, 0.7, 0) : rgb(0.2, 0.8, 0.2);
+    const impactColor = item.impact === "high" ? "#22B14C" : item.impact === "medium" ? "#B5A900" : "#999";
+    const effortColor = item.effort === "high" ? "#C1272D" : item.effort === "medium" ? "#B5A900" : "#22B14C";
 
-    page.drawText(sanitizeForPDF(`Impact: ${item.impact.toUpperCase()} | Effort: ${item.effort.toUpperCase()}`), {
-      x: 70,
-      y: yPosition,
-      size: 10,
-      color: rgb(0.5, 0.5, 0.5)
-    });
+    doc.fontSize(10)
+      .font("Helvetica")
+      .fillColor(impactColor)
+      .text(`Impact: ${item.impact.toUpperCase()}`);
 
-    yPosition -= 28;
+    doc.moveDown(0.15);
+    doc.fillColor(effortColor)
+      .text(`Effort: ${item.effort.toUpperCase()}`);
+
+    doc.moveDown(0.4);
   });
+
+  doc.addPage();
 }
 
 /**
  * Add footer/resources page
  */
-function addFooterPage(pdf) {
-  const page = pdf.addPage([612, 792]);
-  const { width, height } = page.getSize();
-  let yPosition = height - 50;
+function addFooterPage(doc) {
+  doc.fontSize(20)
+    .font("Helvetica-Bold")
+    .fillColor("#0466CC")
+    .text("Next Steps", { align: "center" });
 
-  page.drawText("Next Steps", {
-    x: 50,
-    y: yPosition,
-    size: 28,
-    color: rgb(0.2, 0.4, 0.8)
-  });
-
-  yPosition -= 60;
+  doc.moveDown(0.8);
 
   const steps = [
-    "1. Review the positive themes and ensure they are highlighted in product listings",
-    "2. Develop action plan for the top 3 recommended improvements",
-    "3. Set timeline and assign responsibility for implementing changes",
-    "4. Monitor customer reviews weekly for sentiment changes",
-    "5. Iterate on product based on feedback patterns",
-    "6. Track improvements in average rating over next 60 days"
+    "1. Share these insights with your product development team",
+    "2. Prioritize the high-impact, low-effort improvements",
+    "3. Track customer feedback trends over the next month",
+    "4. Re-analyze reviews after implementing improvements",
+    "5. Monitor competitor offerings in your market segment"
   ];
 
+  doc.fontSize(11)
+    .font("Helvetica")
+    .fillColor("#333");
+
   steps.forEach(step => {
-    page.drawText(step, {
-      x: 70,
-      y: yPosition,
-      size: 11,
-      color: rgb(0.3, 0.3, 0.3),
-      maxWidth: width - 140
-    });
-    yPosition -= 25;
+    doc.text(step, { indent: 20 });
+    doc.moveDown(0.35);
   });
 
-  // Footer
-  yPosition = 100;
-  page.drawText("ReviewIntel", {
-    x: 50,
-    y: yPosition,
-    size: 14,
-    color: rgb(0.2, 0.4, 0.8)
-  });
+  doc.moveDown(1);
 
-  page.drawText("https://review-intel.com", {
-    x: 50,
-    y: yPosition - 20,
-    size: 10,
-    color: rgb(0.7, 0.7, 0.7)
-  });
+  doc.fontSize(10)
+    .fillColor("#999")
+    .text("ReviewIntel - Amazon Review Analysis Platform", { align: "center" });
 
-  page.drawText(`Generated: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, {
-    x: 50,
-    y: yPosition - 40,
-    size: 9,
-    color: rgb(0.7, 0.7, 0.7)
-  });
-}
-
-/**
- * Utility: Remove or replace non-WinAnsi characters
- * pdf-lib uses WinAnsi encoding which doesn't support emoji or some unicode
- */
-function sanitizeForPDF(text) {
-  if (!text) return text;
-  return String(text)
-    .replace(/[^\x00-\x7F]/g, ''); // Remove all non-ASCII characters
-}
-
-/**
- * Deep sanitize all text fields in analysis data to remove non-ASCII chars
- */
-function sanitizeAnalysisData(analysis) {
-  if (!analysis) return analysis;
-  
-  const sanitized = JSON.parse(JSON.stringify(analysis)); // Deep clone
-  
-  if (sanitized.positiveThemes && Array.isArray(sanitized.positiveThemes)) {
-    sanitized.positiveThemes.forEach(item => {
-      if (item.theme) item.theme = sanitizeForPDF(item.theme);
-    });
-  }
-  
-  if (sanitized.negativeThemes && Array.isArray(sanitized.negativeThemes)) {
-    sanitized.negativeThemes.forEach(item => {
-      if (item.theme) item.theme = sanitizeForPDF(item.theme);
-    });
-  }
-  
-  if (sanitized.improvements && Array.isArray(sanitized.improvements)) {
-    sanitized.improvements.forEach(item => {
-      if (item.improvement) item.improvement = sanitizeForPDF(item.improvement);
-    });
-  }
-  
-  if (sanitized.competitorsMentioned && Array.isArray(sanitized.competitorsMentioned)) {
-    sanitized.competitorsMentioned.forEach(item => {
-      if (item.competitor) item.competitor = sanitizeForPDF(item.competitor);
-    });
-  }
-  
-  return sanitized;
-}
-
-/**
- * Utility: Wrap text to fit within width
- */
-function wrapText(text, maxCharsPerLine = 80) {
-  const lines = [];
-  let currentLine = '';
-
-  words.forEach(word => {
-    if ((currentLine + word).length > maxCharsPerLine) {
-      lines.push(currentLine.trim());
-      currentLine = word;
-    } else {
-      currentLine += (currentLine ? ' ' : '') + word;
-    }
-  });
-
-  if (currentLine) lines.push(currentLine.trim());
-  return lines;
+  doc.moveDown(0.2);
+  doc.text(`Report Generated: ${new Date().toLocaleDateString()}`, { align: "center" });
 }
 
 export default {
