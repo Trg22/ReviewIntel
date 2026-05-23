@@ -1,5 +1,7 @@
 /**
  * Generate Sample Report - API Endpoint
+ * ⚠️ REBUILT: Using PDFKit instead of pdf-lib for full Unicode support
+ * Deployment timestamp: Wed May 22 2026 (Force rebuild)
  * 
  * POST /api/generate-sample
  * GET  /api/generate-sample?page=1&limit=10 (for paginated sample reviews)
