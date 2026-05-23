@@ -119,7 +119,7 @@ export function getReportEmailTemplate(customerName, productName, reportUrl) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Your ReviewIntel Report is Ready! 🎉</h1>
+            <h1>Your ReviewIntel Report is Ready!</h1>
           </div>
           <div class="content">
             <p>Hi ${customerName},</p>
@@ -137,7 +137,7 @@ export function getReportEmailTemplate(customerName, productName, reportUrl) {
             </div>
 
             <div class="highlight">
-              <strong>📊 Your Report Includes:</strong>
+              <strong>Your Report Includes:</strong>
               <ul style="margin: 10px 0; padding-left: 20px;">
                 <li>Top 5 positive themes customers love</li>
                 <li>Top 5 areas for improvement</li>
@@ -195,7 +195,7 @@ export function getWelcomeEmailTemplate(customerName) {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Welcome to ReviewIntel! 🚀</h1>
+            <h1>Welcome to ReviewIntel!</h1>
           </div>
           <div class="content">
             <p>Hi ${customerName},</p>
