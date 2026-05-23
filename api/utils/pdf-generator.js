@@ -201,7 +201,7 @@ function addPositiveThemesPage(pdf, analysis) {
   const { width, height } = page.getSize();
   let yPosition = height - 50;
 
-  page.drawText("What Customers Love ⭐", {
+  page.drawText("What Customers Love", {
     x: 50,
     y: yPosition,
     size: 28,
@@ -266,7 +266,7 @@ function addNegativeThemesPage(pdf, analysis) {
   const { width, height } = page.getSize();
   let yPosition = height - 50;
 
-  page.drawText("Areas for Improvement 🔧", {
+  page.drawText("Areas for Improvement", {
     x: 50,
     y: yPosition,
     size: 28,
@@ -328,7 +328,7 @@ function addImprovementsPage(pdf, analysis) {
   const { width, height } = page.getSize();
   let yPosition = height - 50;
 
-  page.drawText("Recommended Actions 📋", {
+  page.drawText("Recommended Actions", {
     x: 50,
     y: yPosition,
     size: 28,
