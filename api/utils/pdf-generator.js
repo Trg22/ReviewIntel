@@ -161,7 +161,7 @@ function addSummaryPage(pdf, analysis) {
   ];
 
   metrics.forEach(metric => {
-    page.drawText(metric, {
+    page.drawText(sanitizeForPDF(metric), {
       x: 70,
       y: yPosition,
       size: 12,
@@ -186,7 +186,7 @@ function addSummaryPage(pdf, analysis) {
 
   const wrappedOverview = wrapText(overview, 80);
   wrappedOverview.forEach(line => {
-    page.drawText(line, {
+    page.drawText(sanitizeForPDF(line), {
       x: 70,
       y: yPosition,
       size: 11,
@@ -227,7 +227,7 @@ function addPositiveThemesPage(pdf, analysis) {
     yPosition -= 25;
 
     // Frequency and confidence
-    page.drawText(`Frequency: ${item.frequency} mentions | Confidence: ${(item.confidence * 100).toFixed(0)}%`, {
+    page.drawText(sanitizeForPDF(`Frequency: ${item.frequency} mentions | Confidence: ${(item.confidence * 100).toFixed(0)}%`), {
       x: 70,
       y: yPosition,
       size: 11,
@@ -251,7 +251,7 @@ function addPositiveThemesPage(pdf, analysis) {
   const recommendation = `Continue emphasizing these strengths in your product marketing and communications. These are key differentiators that justify premium positioning and build customer loyalty.`;
   const wrapped = wrapText(recommendation, 80);
   wrapped.forEach(line => {
-    page.drawText(line, {
+    page.drawText(sanitizeForPDF(line), {
       x: 70,
       y: yPosition,
       size: 11,
@@ -290,7 +290,7 @@ function addNegativeThemesPage(pdf, analysis) {
 
     yPosition -= 25;
 
-    page.drawText(`Mentions: ${item.frequency} | Confidence: ${(item.confidence * 100).toFixed(0)}%`, {
+    page.drawText(sanitizeForPDF(`Mentions: ${item.frequency} | Confidence: ${(item.confidence * 100).toFixed(0)}%`), {
       x: 70,
       y: yPosition,
       size: 11,
@@ -313,7 +313,7 @@ function addNegativeThemesPage(pdf, analysis) {
   const action = `Prioritize addressing these issues to improve customer satisfaction and reduce negative reviews. Even small improvements in these areas can significantly boost your average rating.`;
   const wrapped = wrapText(action, 80);
   wrapped.forEach(line => {
-    page.drawText(line, {
+    page.drawText(sanitizeForPDF(line), {
       x: 70,
       y: yPosition,
       size: 11,
@@ -355,7 +355,7 @@ function addImprovementsPage(pdf, analysis) {
     const impactColor = item.impact === 'high' ? rgb(0.2, 0.8, 0.2) : item.impact === 'medium' ? rgb(0.7, 0.7, 0) : rgb(0.7, 0.7, 0.7);
     const effortColor = item.effort === 'high' ? rgb(0.8, 0.2, 0.2) : item.effort === 'medium' ? rgb(0.7, 0.7, 0) : rgb(0.2, 0.8, 0.2);
 
-    page.drawText(`Impact: ${item.impact.toUpperCase()} | Effort: ${item.effort.toUpperCase()}`, {
+    page.drawText(sanitizeForPDF(`Impact: ${item.impact.toUpperCase()} | Effort: ${item.effort.toUpperCase()}`), {
       x: 70,
       y: yPosition,
       size: 10,
