@@ -4,12 +4,21 @@ let stripe = null;
 
 function getStripe() {
   if (!stripe) {
-    const key = process.env.STRIPE_SECRET_KEY || "";
+    // Use env var if available
+    const key = (process.env.STRIPE_SECRET_KEY || "").trim();
+    
     if (!key) {
-      console.warn("[CHECKOUT] Stripe key not configured");
+      console.warn("[CHECKOUT] Stripe key not configured - checkout will fail");
       return null;
     }
-    stripe = new Stripe(key.trim());
+    
+    try {
+      stripe = new Stripe(key);
+      console.log("[CHECKOUT] ✅ Stripe client initialized");
+    } catch (error) {
+      console.error("[CHECKOUT] Failed to initialize Stripe:", error.message);
+      return null;
+    }
   }
   return stripe;
 }
