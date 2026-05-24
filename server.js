@@ -94,6 +94,11 @@ app.post("/api/checkout-webhook", async (req, res) => {
   }
 });
 
+// Health check endpoint for monitoring
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 // Serve landing page for root
 app.get("/", (req, res) => {
   res.setHeader("Content-Type", "text/html; charset=utf-8");
