@@ -1,27 +1,34 @@
 import Stripe from "stripe";
 
 let stripe = null;
+let stripeInitError = null;
 
 function getStripe() {
+  if (stripeInitError) {
+    console.log("[CHECKOUT] Stripe previously failed to initialize:", stripeInitError);
+    return null;
+  }
+  
   if (!stripe) {
     // Use env var if available
     let key = (process.env.STRIPE_SECRET_KEY || "").trim();
     
     // Validate key format (should start with sk_test_ or sk_live_)
     if (key && !key.match(/^sk_(test|live)_/)) {
-      console.warn("[CHECKOUT] Invalid Stripe key format (doesn't start with sk_test_ or sk_live_)");
+      console.warn("[CHECKOUT] Invalid Stripe key format - returning demo");
       key = null;
     }
     
     if (!key) {
-      console.log("[CHECKOUT] Stripe key not configured");
+      console.log("[CHECKOUT] Stripe key not configured - demo mode");
       return null;
     }
     
     try {
       stripe = new Stripe(key);
-      console.log("[CHECKOUT] ✅ Stripe client initialized");
+      console.log("[CHECKOUT] ✅ Stripe client initialized successfully");
     } catch (error) {
+      stripeInitError = error.message;
       console.error("[CHECKOUT] Failed to initialize Stripe:", error.message);
       return null;
     }
@@ -29,7 +36,7 @@ function getStripe() {
   return stripe;
 }
 
-console.log("[CHECKOUT] Stripe initialization deferred (lazy-loaded on first request)");
+console.log("[CHECKOUT] Stripe lazy initialization ready");
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -55,7 +62,7 @@ export default async function handler(req, res) {
     // Check if Stripe key is available
     const stripeClient = getStripe();
     if (!stripeClient) {
-      console.log("[CHECKOUT] Returning demo checkout (Stripe key not set)");
+      console.log("[CHECKOUT] Returning demo checkout (Stripe unavailable)");
       // Return a demo session for testing/development
       return res.status(200).json({
         success: true,
