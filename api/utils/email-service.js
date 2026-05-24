@@ -42,6 +42,18 @@ export async function sendEmail(options) {
     };
   }
 
+  // Validate API key format (should start with xkeysib_)
+  if (!apiKey.trim().match(/^xkeysib_/)) {
+    console.error("❌ BREVO_API_KEY format invalid (should start with xkeysib_)");
+    console.error("   Key starts with:", apiKey.trim().substring(0, 30));
+    return {
+      success: false,
+      error: "Email service misconfigured",
+      mode: "mock",
+      details: "BREVO_API_KEY format is invalid - should start with 'xkeysib_'"
+    };
+  }
+
   try {
     const senderEmail = process.env.BREVO_SENDER_EMAIL || "no-reply@reviewintel.com";
     const senderName = process.env.BREVO_SENDER_NAME || "ReviewIntel";
