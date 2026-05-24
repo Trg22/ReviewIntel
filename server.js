@@ -145,7 +145,7 @@ app.post("/api/generate-sample", async (req, res) => {
 app.get("/api/reports/:id", async (req, res) => {
   try {
     const { default: reportHandler } = await import(
-      "./api/reports/[id].js"
+      "./api/reports/view.js"
     );
     return reportHandler(req, res);
   } catch (error) {
