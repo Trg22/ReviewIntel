@@ -43,24 +43,26 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Email is required" });
     }
 
+    // Calculate total
+    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
     // Check if Stripe key is available
     const stripeClient = getStripe();
     if (!stripeClient) {
-      console.warn("[CHECKOUT] Stripe key not configured - returning demo session");
-      // Return a demo session for testing
+      console.log("[CHECKOUT] Returning demo checkout (Stripe key not set)");
+      // Return a demo session for testing/development
       return res.status(200).json({
         success: true,
-        message: "Demo mode - configure STRIPE_SECRET_KEY to process real payments",
-        sessionId: "demo_" + Date.now(),
-        demo: true,
+        mode: "demo",
+        message: "This is a demo checkout. Configure STRIPE_SECRET_KEY environment variable for real payments.",
+        sessionId: `demo_session_${Date.now()}`,
+        demoUrl: "https://checkout.stripe.com/c/pay/demo",
         items,
         email,
-        total: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+        total,
+        itemCount: items.length,
       });
     }
-
-    // Calculate total
-    const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     // Create Stripe checkout session
     const session = await stripeClient.checkout.sessions.create({
