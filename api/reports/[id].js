@@ -23,7 +23,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { id } = req.query;
+    // Express passes route params in req.params, not req.query
+    const id = req.params?.id || req.query?.id;
 
     if (!id) {
       return res.status(400).json({ error: "Report ID is required" });
@@ -49,7 +50,7 @@ export default async function handler(req, res) {
 
     if (error || !report) {
       console.error("Report not found:", error?.message || "No report with that ID");
-      return res.status(404).html(getNotFoundPage());
+      return res.status(404).send(getNotFoundPage());
     }
 
     // Extract analysis data
@@ -72,7 +73,7 @@ export default async function handler(req, res) {
     return res.status(200).send(html);
   } catch (error) {
     console.error("Error fetching report:", error);
-    return res.status(500).html(getErrorPage(error.message));
+    return res.status(500).send(getErrorPage(error.message));
   }
 }
 
@@ -85,6 +86,52 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
   const sentiment = analysis.sentiment || {};
   const recommendations = analysis.recommendations || [];
   const competitors = analysis.competitors || [];
+
+  const positiveThemesHtml = positiveThemes && positiveThemes.length > 0
+    ? positiveThemes
+        .slice(0, 5)
+        .map((theme) => {
+          const name = theme.name || theme;
+          const mentions = theme.mentions || 0;
+          return `<div class="theme-item positive"><span class="theme-name">${name}</span><span class="theme-count">${mentions} mentions</span></div>`;
+        })
+        .join("")
+    : '<div class="empty">No positive themes available</div>';
+
+  const negativeThemesHtml = negativeThemes && negativeThemes.length > 0
+    ? negativeThemes
+        .slice(0, 5)
+        .map((theme) => {
+          const name = theme.name || theme;
+          const mentions = theme.mentions || 0;
+          return `<div class="theme-item negative"><span class="theme-name">${name}</span><span class="theme-count">${mentions} mentions</span></div>`;
+        })
+        .join("")
+    : '<div class="empty">No improvement areas available</div>';
+
+  const recommendationsHtml = recommendations && recommendations.length > 0
+    ? '<ul class="recommendations-list">' +
+      recommendations
+        .slice(0, 5)
+        .map((rec) => `<li>${rec.title || rec}</li>`)
+        .join("") +
+      '</ul>'
+    : '<div class="empty">No recommendations available</div>';
+
+  const competitorsHtml = competitors && competitors.length > 0
+    ? competitors
+        .slice(0, 6)
+        .map((comp) => {
+          const name = comp.name || comp;
+          const mentions = comp.mentions || 0;
+          return `<div class="competitor-item"><div class="competitor-name">${name}</div><div class="competitor-mention">${mentions} mentions in reviews</div></div>`;
+        })
+        .join("")
+    : '<div class="empty">No competitor data available</div>';
+
+  const positivePercent = sentiment.positive || 68;
+  const neutralPercent = sentiment.neutral || 20;
+  const negativePercent = sentiment.negative || 12;
 
   return `
 <!DOCTYPE html>
@@ -333,7 +380,7 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
         <div class="metric-label">Total Reviews</div>
       </div>
       <div class="metric">
-        <div class="metric-value">${Math.round((sentiment.positive || 0))}%</div>
+        <div class="metric-value">${positivePercent}%</div>
         <div class="metric-label">Positive Sentiment</div>
       </div>
       <div class="metric">
@@ -345,49 +392,17 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
     <!-- Positive Themes -->
     <div class="section">
       <h2>✨ Top Positive Themes</h2>
-      ${
-        positiveThemes && positiveThemes.length > 0
-          ? \`
-        <div class="theme-list">
-          \${positiveThemes
-            .slice(0, 5)
-            .map(
-              (theme) => \`
-            <div class="theme-item positive">
-              <span class="theme-name">\${theme.name || theme}</span>
-              <span class="theme-count">\${theme.mentions || 0} mentions</span>
-            </div>
-          \`
-            )
-            .join("")}
-        </div>
-      \`
-          : '<div class="empty">No positive themes available</div>'
-      }
+      <div class="theme-list">
+        ${positiveThemesHtml}
+      </div>
     </div>
 
     <!-- Negative Themes -->
     <div class="section">
       <h2>⚠️ Areas for Improvement</h2>
-      ${
-        negativeThemes && negativeThemes.length > 0
-          ? \`
-        <div class="theme-list">
-          \${negativeThemes
-            .slice(0, 5)
-            .map(
-              (theme) => \`
-            <div class="theme-item negative">
-              <span class="theme-name">\${theme.name || theme}</span>
-              <span class="theme-count">\${theme.mentions || 0} mentions</span>
-            </div>
-          \`
-            )
-            .join("")}
-        </div>
-      \`
-          : '<div class="empty">No improvement areas available</div>'
-      }
+      <div class="theme-list">
+        ${negativeThemesHtml}
+      </div>
     </div>
 
     <!-- Sentiment Breakdown -->
@@ -397,24 +412,24 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
         <div class="sentiment-bar">
           <div class="sentiment-label">Positive</div>
           <div class="bar-container">
-            <div class="bar-fill" style="width: \${sentiment.positive || 68}%; background: #10b981;">
-              \${sentiment.positive || 68}%
+            <div class="bar-fill" style="width: ${positivePercent}%; background: #10b981;">
+              ${positivePercent}%
             </div>
           </div>
         </div>
         <div class="sentiment-bar">
           <div class="sentiment-label">Neutral</div>
           <div class="bar-container">
-            <div class="bar-fill" style="width: \${sentiment.neutral || 20}%; background: #f59e0b;">
-              \${sentiment.neutral || 20}%
+            <div class="bar-fill" style="width: ${neutralPercent}%; background: #f59e0b;">
+              ${neutralPercent}%
             </div>
           </div>
         </div>
         <div class="sentiment-bar">
           <div class="sentiment-label">Negative</div>
           <div class="bar-container">
-            <div class="bar-fill" style="width: \${sentiment.negative || 12}%; background: #ef4444;">
-              \${sentiment.negative || 12}%
+            <div class="bar-fill" style="width: ${negativePercent}%; background: #ef4444;">
+              ${negativePercent}%
             </div>
           </div>
         </div>
@@ -424,42 +439,15 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
     <!-- Recommendations -->
     <div class="section">
       <h2>💡 Actionable Recommendations</h2>
-      ${
-        recommendations && recommendations.length > 0
-          ? \`
-        <ul class="recommendations-list">
-          \${recommendations
-            .slice(0, 5)
-            .map((rec) => \`<li>\${rec.title || rec}</li>\`)
-            .join("")}
-        </ul>
-      \`
-          : '<div class="empty">No recommendations available</div>'
-      }
+      ${recommendationsHtml}
     </div>
 
     <!-- Competitors -->
     <div class="section">
       <h2>🎯 Competitor Insights</h2>
-      ${
-        competitors && competitors.length > 0
-          ? \`
-        <div class="competitors-list">
-          \${competitors
-            .slice(0, 6)
-            .map(
-              (comp) => \`
-            <div class="competitor-item">
-              <div class="competitor-name">\${comp.name || comp}</div>
-              <div class="competitor-mention">\${comp.mentions || 0} mentions in reviews</div>
-            </div>
-          \`
-            )
-            .join("")}
-        </div>
-      \`
-          : '<div class="empty">No competitor data available</div>'
-      }
+      <div class="competitors-list">
+        ${competitorsHtml}
+      </div>
     </div>
 
     <div class="footer">
@@ -546,7 +534,7 @@ function getErrorPage(errorMsg) {
 </head>
 <body>
   <div class="error-box">
-    <h1>⚠️ Error Loading Report</h1>
+    <h1>Error Loading Report</h1>
     <p>There was a problem loading your report. Please try again later.</p>
   </div>
 </body>
