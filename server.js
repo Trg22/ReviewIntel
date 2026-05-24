@@ -9,6 +9,13 @@ dotenv.config();
 console.log("[STARTUP] server.js loaded successfully");
 console.log("[STARTUP] PORT env:", process.env.PORT);
 console.log("[STARTUP] NODE_ENV:", process.env.NODE_ENV);
+console.log("[STARTUP] Environment Check:");
+console.log("  - STRIPE_SECRET_KEY:", process.env.STRIPE_SECRET_KEY ? `✓ (${process.env.STRIPE_SECRET_KEY.slice(0, 20)}...)` : "✗ MISSING");
+console.log("  - SUPABASE_URL:", process.env.SUPABASE_URL ? `✓` : "✗ MISSING");
+console.log("  - SUPABASE_ANON_KEY:", process.env.SUPABASE_ANON_KEY ? `✓` : "✗ MISSING");
+console.log("  - BREVO_API_KEY:", process.env.BREVO_API_KEY ? `✓` : "✗ MISSING");
+console.log("  - CLAUDE_API_KEY:", process.env.CLAUDE_API_KEY ? `✓` : "✗ MISSING");
+console.log("  - APIFY_TOKEN:", process.env.APIFY_TOKEN ? `✓` : "✗ MISSING");
 
 const app = express();
 
