@@ -1,17 +1,20 @@
 import Stripe from "stripe";
 
-// Use provided key or fallback (use placeholder, will be set via env var)
-const stripeKey = process.env.STRIPE_SECRET_KEY;
+let stripe = null;
 
-if (!stripeKey) {
-  console.warn("[CHECKOUT] ⚠️  STRIPE_SECRET_KEY not set - checkout will fail");
+function getStripe() {
+  if (!stripe) {
+    const key = process.env.STRIPE_SECRET_KEY || "";
+    if (!key) {
+      console.warn("[CHECKOUT] Stripe key not configured");
+      return null;
+    }
+    stripe = new Stripe(key.trim());
+  }
+  return stripe;
 }
 
-console.log("[CHECKOUT] Initializing Stripe:", 
-  stripeKey ? `✓ (${stripeKey.slice(0, 20)}...)` : "✗ not set"
-);
-
-const stripe = new Stripe(stripeKey);
+console.log("[CHECKOUT] Stripe initialization deferred (lazy-loaded on first request)");
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -32,7 +35,8 @@ export default async function handler(req, res) {
     }
 
     // Check if Stripe key is available
-    if (!process.env.STRIPE_SECRET_KEY) {
+    const stripeClient = getStripe();
+    if (!stripeClient) {
       console.warn("[CHECKOUT] Stripe key not configured - returning demo session");
       // Return a demo session for testing
       return res.status(200).json({
@@ -50,7 +54,7 @@ export default async function handler(req, res) {
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    const session = await stripeClient.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: items.map((item) => ({
         price_data: {

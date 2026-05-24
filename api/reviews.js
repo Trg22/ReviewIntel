@@ -1,20 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 
-console.log("[REVIEWS] Initializing Supabase:");
-console.log("  SUPABASE_URL set:", !!process.env.SUPABASE_URL);
-console.log("  SUPABASE_ANON_KEY set:", !!process.env.SUPABASE_ANON_KEY);
+let supabase = null;
 
-let supabase;
-try {
-  supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-  );
-  console.log("[REVIEWS] ✅ Supabase client created");
-} catch (error) {
-  console.error("[REVIEWS] ❌ Error creating Supabase client:", error.message);
-  console.error("  URL:", JSON.stringify(process.env.SUPABASE_URL));
-  console.error("  Key:", JSON.stringify(process.env.SUPABASE_ANON_KEY));
+function getSupabaseClient() {
+  if (!supabase) {
+    const url = "https://feesmokjbrhgltguokpi.supabase.co";
+    const key = "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI";
+    
+    console.log("[REVIEWS] Creating Supabase client with hardcoded values");
+    supabase = createClient(url, key);
+  }
+  return supabase;
 }
 
 export default async function handler(req, res) {
@@ -32,12 +28,15 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Rating must be between 1 and 5" });
       }
 
+      // Get Supabase client (lazily initialized)
+      const sb = getSupabaseClient();
+
       // Attempt to store review in Supabase, but don't fail if table doesn't exist yet
       let data = null;
       let dbError = null;
       
       try {
-        const result = await supabase.from("reviews").insert([
+        const result = await sb.from("reviews").insert([
           {
             productId,
             rating,
