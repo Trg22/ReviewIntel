@@ -103,8 +103,8 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
     ? positiveThemes
         .slice(0, 5)
         .map((theme) => {
-          const name = theme.name || theme;
-          const mentions = theme.mentions || 0;
+          const name = theme.theme || theme.name || "Unknown Theme";
+          const mentions = theme.frequency || theme.mentions || 0;
           return `<div class="theme-item positive"><span class="theme-name">${name}</span><span class="theme-count">${mentions} mentions</span></div>`;
         })
         .join("")
@@ -114,8 +114,8 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
     ? negativeThemes
         .slice(0, 5)
         .map((theme) => {
-          const name = theme.name || theme;
-          const mentions = theme.mentions || 0;
+          const name = theme.theme || theme.name || "Unknown Theme";
+          const mentions = theme.frequency || theme.mentions || 0;
           return `<div class="theme-item negative"><span class="theme-name">${name}</span><span class="theme-count">${mentions} mentions</span></div>`;
         })
         .join("")
@@ -125,7 +125,7 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
     ? '<ul class="recommendations-list">' +
       recommendations
         .slice(0, 5)
-        .map((rec) => `<li>${rec.title || rec}</li>`)
+        .map((rec) => `<li>${rec.improvement || rec.title || rec}</li>`)
         .join("") +
       '</ul>'
     : '<div class="empty">No recommendations available</div>';
@@ -134,7 +134,7 @@ function generateReportPage({ productName, asin, avgRating, totalReviews, analys
     ? competitors
         .slice(0, 6)
         .map((comp) => {
-          const name = comp.name || comp;
+          const name = comp.competitor || comp.name || "Unknown";
           const mentions = comp.mentions || 0;
           return `<div class="competitor-item"><div class="competitor-name">${name}</div><div class="competitor-mention">${mentions} mentions in reviews</div></div>`;
         })
