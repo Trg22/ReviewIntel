@@ -141,6 +141,19 @@ app.post("/api/generate-sample", async (req, res) => {
   }
 });
 
+// Generate full paid report endpoint
+app.post("/api/generate-report", async (req, res) => {
+  try {
+    const { default: generateReportHandler } = await import(
+      "./api/generate-report.js"
+    );
+    return generateReportHandler(req, res);
+  } catch (error) {
+    console.error("Error loading generate-report handler:", error);
+    res.status(500).json({ error: "Internal error", details: error.message });
+  }
+});
+
 // Report viewing endpoint
 app.get("/api/reports/:id", async (req, res) => {
   try {
@@ -192,6 +205,7 @@ app.use((req, res) => {
       "POST /api/reviews",
       "GET /api/generate-sample?page=1&limit=10",
       "POST /api/generate-sample",
+      "POST /api/generate-report",
       "GET /api/reports/:id",
       "POST /api/checkout",
       "POST /api/checkout-webhook",
@@ -235,6 +249,7 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`  POST /api/reviews`);
   console.log(`  GET  /api/generate-sample?page=1&limit=10`);
   console.log(`  POST /api/generate-sample`);
+  console.log(`  POST /api/generate-report`);
   console.log(`  POST /api/checkout`);
   console.log(`  POST /api/checkout-webhook`);
 });
