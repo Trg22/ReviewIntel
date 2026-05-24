@@ -1,5 +1,9 @@
 import Stripe from "stripe";
 
+console.log("[CHECKOUT] Initializing Stripe with key:", 
+  process.env.STRIPE_SECRET_KEY ? "✓ set" : "✗ missing"
+);
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
