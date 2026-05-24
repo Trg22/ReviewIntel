@@ -55,7 +55,7 @@ export async function sendEmail(options) {
   }
 
   try {
-    const senderEmail = process.env.BREVO_SENDER_EMAIL || "no-reply@reviewintel.com";
+    const senderEmail = process.env.BREVO_SENDER_EMAIL || "franc_becva@yahoo.com";
     const senderName = process.env.BREVO_SENDER_NAME || "ReviewIntel";
 
     const emailData = {
