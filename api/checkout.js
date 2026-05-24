@@ -1,9 +1,7 @@
-import Stripe from "stripe";
-
 let stripe = null;
 let stripeInitError = null;
 
-function getStripe() {
+async function getStripe() {
   if (stripeInitError) {
     console.log("[CHECKOUT] Stripe previously failed to initialize:", stripeInitError);
     return null;
@@ -25,6 +23,8 @@ function getStripe() {
     }
     
     try {
+      // Dynamically import Stripe to defer initialization
+      const { default: Stripe } = await import("stripe");
       stripe = new Stripe(key);
       console.log("[CHECKOUT] ✅ Stripe client initialized successfully");
     } catch (error) {
@@ -36,7 +36,7 @@ function getStripe() {
   return stripe;
 }
 
-console.log("[CHECKOUT] Stripe lazy initialization ready");
+console.log("[CHECKOUT] Stripe lazy initialization ready (deferred import)");
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     // Check if Stripe key is available
-    const stripeClient = getStripe();
+    const stripeClient = await getStripe();
     if (!stripeClient) {
       console.log("[CHECKOUT] Returning demo checkout (Stripe unavailable)");
       // Return a demo session for testing/development
