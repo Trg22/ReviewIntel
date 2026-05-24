@@ -33,6 +33,12 @@ const app = express();
 app.use(express.json({ limit: "50mb" }));
 app.use(express.raw({ type: "application/octet-stream", limit: "50mb" }));
 
+// Serve static files from public directory
+app.use(express.static("public", {
+  extensions: ["html", "htm"],
+  index: "index.html"
+}));
+
 // CORS middleware
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
