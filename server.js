@@ -141,8 +141,10 @@ process.on("uncaughtException", (error) => {
 // Start server on all environments (required for Railway)
 const PORT = process.env.PORT || 3000;
 console.log("[STARTUP] Attempting to bind to port", PORT);
-app.listen(PORT, "0.0.0.0", () => {
+
+const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`[STARTUP] ReviewIntel server running on port ${PORT}`);
+  console.log(`[STARTUP] Server object ready:`, server.address());
   console.log(`Available endpoints:`);
   console.log(`  GET  /api/status`);
   console.log(`  GET  /api/health`);
@@ -150,6 +152,17 @@ app.listen(PORT, "0.0.0.0", () => {
   console.log(`  GET  /api/generate-sample?page=1&limit=10`);
   console.log(`  POST /api/generate-sample`);
   console.log(`  POST /api/checkout-webhook`);
+});
+
+// Server error handlers
+server.on("error", (error) => {
+  console.error("[ERROR] Server error:", error);
+  process.exit(1);
+});
+
+server.on("clientError", (error, socket) => {
+  console.error("[ERROR] Client error:", error);
+  socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
 });
 
 export default app;
