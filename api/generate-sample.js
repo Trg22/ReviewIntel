@@ -160,6 +160,16 @@ async function handleGenerateSample(req, res) {
       attachmentName: "ReviewIntel-Sample-Report.pdf",
     });
 
+    if (!emailResult.success) {
+      console.warn(`[generate-sample] Email send failed: ${emailResult.error}`);
+      return res.status(500).json({
+        success: false,
+        error: "Email service not available",
+        details: emailResult.details || "Could not send sample report to your email",
+        advice: "The sample PDF was generated but email sending is not configured. Please contact support or check your email settings."
+      });
+    }
+
     // Save to database
     await saveReport({
       userEmail: email,

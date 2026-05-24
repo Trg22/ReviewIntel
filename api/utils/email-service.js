@@ -30,13 +30,19 @@ export async function sendEmail(options) {
     throw new Error("Missing required email fields: to, subject, html");
   }
 
-  if (!process.env.BREVO_API_KEY) {
-    console.warn("Brevo API key not configured - using mock send");
-    return getMockEmailResponse(to, subject);
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) {
+    console.error("❌ BREVO_API_KEY not configured - email WILL NOT be sent");
+    // Return error response instead of silently failing
+    return {
+      success: false,
+      error: "Email service not configured",
+      mode: "mock",
+      details: "BREVO_API_KEY environment variable is not set"
+    };
   }
 
   try {
-    const apiKey = process.env.BREVO_API_KEY;
     const senderEmail = process.env.BREVO_SENDER_EMAIL || "no-reply@reviewintel.com";
     const senderName = process.env.BREVO_SENDER_NAME || "ReviewIntel";
 
@@ -78,12 +84,11 @@ export async function sendEmail(options) {
     }
 
     const result = await response.json();
-    console.log(`Email sent to ${to}: ${result.messageId}`);
+    console.log(`✅ Email sent to ${to}: ${result.messageId}`);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error("Email send error:", error.message);
-    // Return mock response to allow testing without API key
-    return getMockEmailResponse(to, subject);
+    console.error("❌ Email send error:", error.message);
+    throw error; // Throw instead of silently failing
   }
 }
 
