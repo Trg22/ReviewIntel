@@ -79,12 +79,26 @@ export default async function handler(req, res) {
       asin
     );
 
-    // Step 4: Send email
-    console.log("Step 4: Sending email...");
+    // Step 4: Save to database FIRST (to get reportId)
+    console.log("Step 4: Saving to database...");
+    const savedReport = await saveReport({
+      userEmail: email,
+      asin,
+      productName,
+      analysis,
+      pdfUrl: `https://reviewintel.onrender.com/api/reports/${asin}`,
+      paymentId,
+      orderTimestamp
+    });
+
+    // Step 5: Send email with correct report link
+    console.log("Step 5: Sending email...");
+    const reportUrl = `https://reviewintel.onrender.com/api/reports/${savedReport.id}`;
+    
     const emailTemplate = getReportEmailTemplate(
       name || "Valued Customer",
       productName,
-      "https://review-intel.com/dashboard"
+      reportUrl
     );
 
     const emailResult = await sendEmail({
@@ -93,18 +107,6 @@ export default async function handler(req, res) {
       html: emailTemplate,
       attachment: pdfBuffer,
       attachmentName: `ReviewIntel-Report-${asin}.pdf`
-    });
-
-    // Step 5: Save to database
-    console.log("Step 5: Saving to database...");
-    const savedReport = await saveReport({
-      userEmail: email,
-      asin,
-      productName,
-      analysis,
-      pdfUrl: `https://review-intel.com/reports/${asin}`,
-      paymentId,
-      orderTimestamp
     });
 
     // Log success
