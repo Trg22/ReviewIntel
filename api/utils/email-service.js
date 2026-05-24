@@ -42,15 +42,15 @@ export async function sendEmail(options) {
     };
   }
 
-  // Validate API key format (should start with xkeysib_)
-  if (!apiKey.trim().match(/^xkeysib_/)) {
-    console.error("❌ BREVO_API_KEY format invalid (should start with xkeysib_)");
+  // Validate API key format (accept both xkeysib_ and xkeysib- formats)
+  if (!apiKey.trim().match(/^xkeysib[-_]/)) {
+    console.error("❌ BREVO_API_KEY format invalid (should start with xkeysib_ or xkeysib-)");
     console.error("   Key starts with:", apiKey.trim().substring(0, 30));
     return {
       success: false,
       error: "Email service misconfigured",
       mode: "mock",
-      details: "BREVO_API_KEY format is invalid - should start with 'xkeysib_'"
+      details: "BREVO_API_KEY format is invalid - should start with 'xkeysib_' or 'xkeysib-'"
     };
   }
 
