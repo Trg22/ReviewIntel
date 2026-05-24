@@ -47,9 +47,10 @@ export async function saveReport(report) {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
-    ]);
+    ]).select(); // THIS IS THE FIX: .select() returns the inserted row with ID
 
     if (error) throw error;
+    console.log("[saveReport] Inserted report with ID:", data?.[0]?.id);
     return data?.[0] || report;
   } catch (error) {
     console.error("Database error:", error.message);
