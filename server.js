@@ -1,5 +1,10 @@
 import express from "express";
 import { LANDING_HTML } from "./landing-template.js";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 
 console.log("[STARTUP] server.js loaded successfully");
 console.log("[STARTUP] PORT env:", process.env.PORT);
