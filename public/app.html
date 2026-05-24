@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReviewIntel - Get Your Report</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #3366cc 0%, #2952a3 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #3366cc;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .tier-selection {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .tier-card {
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: left;
+    }
+
+    .tier-card:hover {
+      border-color: #3366cc;
+      background: #f5f9ff;
+    }
+
+    .tier-card.selected {
+      border-color: #3366cc;
+      background: #f5f9ff;
+    }
+
+    .tier-name {
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .tier-price {
+      font-size: 18px;
+      font-weight: bold;
+      color: #3366cc;
+      margin-bottom: 5px;
+    }
+
+    .tier-reports {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .form-section {
+      display: none;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input[type="email"],
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="email"]:focus,
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #3366cc;
+      box-shadow: 0 0 0 3px rgba(51, 102, 204, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #3366cc;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2952a3;
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #3366cc;
+      border: 2px solid #3366cc;
+    }
+
+    .btn-secondary:hover {
+      background: #f5f9ff;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      color: #3366cc;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .error {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .step-indicator {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      font-size: 12px;
+      color: #999;
+    }
+
+    .step {
+      text-align: center;
+    }
+
+    .step.active {
+      color: #3366cc;
+      font-weight: bold;
+    }
+
+    .step-number {
+      display: inline-block;
+      width: 24px;
+      height: 24px;
+      background: #e0e0e0;
+      border-radius: 50%;
+      line-height: 24px;
+      margin-bottom: 5px;
+    }
+
+    .step.active .step-number {
+      background: #3366cc;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">ReviewIntel</div>
+    
+    <div class="step-indicator">
+      <div class="step active" id="step-1">
+        <div class="step-number">1</div>
+        <div>Plan</div>
+      </div>
+      <div class="step" id="step-2">
+        <div class="step-number">2</div>
+        <div>Details</div>
+      </div>
+      <div class="step" id="step-3">
+        <div class="step-number">3</div>
+        <div>Payment</div>
+      </div>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <!-- Step 1: Tier Selection -->
+    <div id="tier-section" class="form-section active">
+      <h1>Choose Your Plan</h1>
+      <p class="subtitle">Select a plan to analyze your Amazon reviews</p>
+      
+      <div class="tier-selection" id="tier-list">
+        <div class="tier-card" data-tier="early_bird" data-price="19">
+          <div class="tier-name">Early Bird</div>
+          <div class="tier-price">$19</div>
+          <div class="tier-reports">5 reports included</div>
+        </div>
+        <div class="tier-card" data-tier="pro" data-price="99">
+          <div class="tier-name">Pro</div>
+          <div class="tier-price">$99</div>
+          <div class="tier-reports">20 reports included</div>
+        </div>
+        <div class="tier-card" data-tier="professional" data-price="199">
+          <div class="tier-name">Professional</div>
+          <div class="tier-price">$199</div>
+          <div class="tier-reports">50 reports included</div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="nextStep()">Continue</button>
+    </div>
+
+    <!-- Step 2: Product Details -->
+    <div id="details-section" class="form-section">
+      <h1>Enter Your Product</h1>
+      <p class="subtitle">Paste your Amazon product ASIN or URL</p>
+
+      <form onsubmit="nextStep(event)">
+        <div class="form-group">
+          <label for="email-input">Email Address</label>
+          <input type="email" id="email-input" placeholder="your@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="asin-input">Product ASIN or Amazon URL</label>
+          <input type="text" id="asin-input" placeholder="e.g., B0D1X2Y3Z4 or amazon.com/dp/B0D1X2Y3Z4" required>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn btn-secondary" onclick="prevStep()" style="flex: 1;">Back</button>
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Continue</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 3: Confirmation -->
+    <div id="confirmation-section" class="form-section">
+      <h1>Review & Pay</h1>
+      <p class="subtitle">Confirm your order details</p>
+
+      <div style="background: #f5f9ff; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+        <div style="margin-bottom: 10px;">
+          <strong>Plan:</strong> <span id="confirm-tier"></span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <strong>Price:</strong> <span id="confirm-price"></span>
+        </div>
+        <div style="margin-bottom: 10px;">
+          <strong>Email:</strong> <span id="confirm-email"></span>
+        </div>
+        <div>
+          <strong>Product:</strong> <span id="confirm-asin"></span>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <p>Processing payment...</p>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-secondary" onclick="prevStep()" style="flex: 1;">Back</button>
+        <button class="btn btn-primary" onclick="handleCheckout()" style="flex: 1;">Pay Now</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedTier = null;
+    let selectedPrice = null;
+
+    // Tier selection
+    document.querySelectorAll('.tier-card').forEach(card => {
+      card.addEventListener('click', function() {
+        document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+        this.classList.add('selected');
+        selectedTier = this.dataset.tier;
+        selectedPrice = this.dataset.price;
+      });
+    });
+
+    function nextStep(event) {
+      if (event) event.preventDefault();
+
+      // Step 1 → 2
+      if (document.getElementById('tier-section').classList.contains('active')) {
+        if (!selectedTier) {
+          showError('Please select a plan');
+          return;
+        }
+        document.getElementById('tier-section').classList.remove('active');
+        document.getElementById('details-section').classList.add('active');
+        updateSteps(2);
+      }
+      // Step 2 → 3
+      else if (document.getElementById('details-section').classList.contains('active')) {
+        const email = document.getElementById('email-input').value;
+        const asin = document.getElementById('asin-input').value;
+
+        if (!email || !asin) {
+          showError('Please fill in all fields');
+          return;
+        }
+
+        // Store for confirmation
+        const tierNames = {
+          early_bird: 'Early Bird',
+          pro: 'Pro',
+          professional: 'Professional'
+        };
+
+        document.getElementById('confirm-tier').textContent = tierNames[selectedTier];
+        document.getElementById('confirm-price').textContent = '$' + selectedPrice;
+        document.getElementById('confirm-email').textContent = email;
+        document.getElementById('confirm-asin').textContent = asin;
+
+        document.getElementById('details-section').classList.remove('active');
+        document.getElementById('confirmation-section').classList.add('active');
+        updateSteps(3);
+      }
+    }
+
+    function prevStep() {
+      // 2 → 1
+      if (document.getElementById('details-section').classList.contains('active')) {
+        document.getElementById('details-section').classList.remove('active');
+        document.getElementById('tier-section').classList.add('active');
+        updateSteps(1);
+      }
+      // 3 → 2
+      else if (document.getElementById('confirmation-section').classList.contains('active')) {
+        document.getElementById('confirmation-section').classList.remove('active');
+        document.getElementById('details-section').classList.add('active');
+        updateSteps(2);
+      }
+    }
+
+    function updateSteps(current) {
+      [1, 2, 3].forEach(i => {
+        document.getElementById('step-' + i).classList.toggle('active', i === current);
+      });
+    }
+
+    function showError(msg) {
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = msg;
+      errorEl.classList.add('show');
+      setTimeout(() => errorEl.classList.remove('show'), 5000);
+    }
+
+    async function handleCheckout() {
+      const email = document.getElementById('email-input').value;
+      const asin = document.getElementById('asin-input').value.trim();
+
+      // Extract ASIN from URL if needed
+      let cleanAsin = asin;
+      if (asin.includes('amazon.com')) {
+        const match = asin.match(/\/dp\/([A-Z0-9]{10})/);
+        cleanAsin = match ? match[1] : asin;
+      }
+
+      if (cleanAsin.length !== 10) {
+        showError('Invalid ASIN. Please enter a 10-character product ID.');
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError('Please enter a valid email address.');
+        return;
+      }
+
+      document.getElementById('loading').classList.add('show');
+
+      try {
+        // Create Stripe checkout session
+        const response = await fetch('/api/stripe-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tier: selectedTier,
+            email: email,
+            successUrl: `${window.location.origin}/api/reports/success?asin=${cleanAsin}&tier=${selectedTier}`,
+            cancelUrl: `${window.location.origin}/app`
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success || !data.sessionId) {
+          showError('Error: ' + (data.error || 'Failed to start checkout'));
+          return;
+        }
+
+        // Store pending report info
+        sessionStorage.setItem('pendingReport', JSON.stringify({
+          email,
+          asin: cleanAsin,
+          tier: selectedTier,
+          timestamp: Date.now()
+        }));
+
+        // Redirect to Stripe
+        const stripe = Stripe('pk_test_51TZkd2Fip0BdTSN4tlGZNNd4kPa9EolKSa1CHUaWoCPSTizCOKRsVLUnzPFMMtilESCVbpse6wA0zxAFcbqsiXE100SCmzVNKw');
+        await stripe.redirectToCheckout({ sessionId: data.sessionId });
+
+      } catch (error) {
+        showError('Error: ' + error.message);
+      } finally {
+        document.getElementById('loading').classList.remove('show');
+      }
+    }
+  </script>
+</body>
+</html>

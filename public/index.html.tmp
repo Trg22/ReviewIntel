@@ -1,0 +1,2 @@
+// Replace placeholder Stripe key
+const STRIPE_PUBLIC_KEY = 'pk_test_51TZkd2Fip0BdTSN4tlGZNNd4kPa9EolKSa1CHUaWoCPSTizCOKRsVLUnzPFMMtilESCVbpse6wA0zxAFcbqsiXE100SCmzVNKw';

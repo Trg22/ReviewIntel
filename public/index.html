@@ -856,7 +856,7 @@
         }));
 
         // Step 3: Redirect to Stripe Checkout
-        const stripe = Stripe('pk_live_YOUR_STRIPE_PUBLIC_KEY'); // Will be set via env
+        const stripe = Stripe('pk_test_51TZkd2Fip0BdTSN4tlGZNNd4kPa9EolKSa1CHUaWoCPSTizCOKRsVLUnzPFMMtilESCVbpse6wA0zxAFcbqsiXE100SCmzVNKw'); // Will be set via env
         const result = await stripe.redirectToCheckout({
           sessionId: checkoutData.sessionId
         });
