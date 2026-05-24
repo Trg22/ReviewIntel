@@ -1,10 +1,17 @@
 import Stripe from "stripe";
 
-console.log("[CHECKOUT] Initializing Stripe with key:", 
-  process.env.STRIPE_SECRET_KEY ? "✓ set" : "✗ missing"
+// Use provided key or fallback (use placeholder, will be set via env var)
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+
+if (!stripeKey) {
+  console.warn("[CHECKOUT] ⚠️  STRIPE_SECRET_KEY not set - checkout will fail");
+}
+
+console.log("[CHECKOUT] Initializing Stripe:", 
+  stripeKey ? `✓ (${stripeKey.slice(0, 20)}...)` : "✗ not set"
 );
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(stripeKey);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {

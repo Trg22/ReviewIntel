@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: reviewintel
+    env: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: node server.js
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "3000"
+      - key: NODE_ENV
+        value: "production"
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: SUPABASE_URL
+        value: "https://feesmokjbrhgltguokpi.supabase.co"
+      - key: SUPABASE_ANON_KEY
+        value: "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI"
+      - key: BREVO_API_KEY
+        sync: false
+      - key: CLAUDE_API_KEY
+        sync: false
+      - key: APIFY_TOKEN
+        sync: false

@@ -2,9 +2,17 @@ import express from "express";
 import { LANDING_HTML } from "./landing-template.js";
 import dotenv from "dotenv";
 
-// Load environment variables
+// Load environment variables from .env or Render dashboard
 dotenv.config({ path: ".env.local" });
 dotenv.config();
+
+// Fallback env vars for testing (will be overridden by actual env vars if set)
+if (!process.env.SUPABASE_URL) {
+  process.env.SUPABASE_URL = "https://feesmokjbrhgltguokpi.supabase.co";
+}
+if (!process.env.SUPABASE_ANON_KEY) {
+  process.env.SUPABASE_ANON_KEY = "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI";
+}
 
 console.log("[STARTUP] server.js loaded successfully");
 console.log("[STARTUP] PORT env:", process.env.PORT);
