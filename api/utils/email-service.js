@@ -174,7 +174,7 @@ export function getReportEmailTemplate(customerName, productName, reportUrl) {
               <li>Re-analyze quarterly to measure progress</li>
             </ol>
 
-            <p>Questions? Reply to this email or visit <a href="https://review-intel.com">review-intel.com</a></p>
+            <p>Questions? Reply to this email or visit <a href="https://reviewintels.com">reviewintels.com</a></p>
 
             <div class="footer">
               <p>ReviewIntel - Amazon Review Analysis Platform</p>
@@ -226,7 +226,7 @@ export function getWelcomeEmailTemplate(customerName) {
               <li><strong>Act</strong> on recommendations to improve your product</li>
             </ol>
 
-            <p><a href="https://review-intel.com/dashboard" class="cta-button">Start Your First Analysis</a></p>
+            <p><a href="https://reviewintels.com/dashboard" class="cta-button">Start Your First Analysis</a></p>
 
             <h3>Sample Insights You'll Get:</h3>
             <ul>
