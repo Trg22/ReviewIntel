@@ -1,9 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+console.log("[REVIEWS] Initializing Supabase:");
+console.log("  SUPABASE_URL set:", !!process.env.SUPABASE_URL);
+console.log("  SUPABASE_ANON_KEY set:", !!process.env.SUPABASE_ANON_KEY);
+
+let supabase;
+try {
+  supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+  );
+  console.log("[REVIEWS] ✅ Supabase client created");
+} catch (error) {
+  console.error("[REVIEWS] ❌ Error creating Supabase client:", error.message);
+  console.error("  URL:", JSON.stringify(process.env.SUPABASE_URL));
+  console.error("  Key:", JSON.stringify(process.env.SUPABASE_ANON_KEY));
+}
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
