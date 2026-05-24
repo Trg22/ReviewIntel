@@ -592,59 +592,71 @@
     <h2>Simple, Transparent Pricing</h2>
     <div class="pricing-cards">
       <div class="pricing-card">
-        <h3>Single Report</h3>
+        <h3>Early Bird</h3>
         <div class="price">$19</div>
         <div class="price-period">One-time payment</div>
         <ul>
-          <li>One complete analysis</li>
-          <li>PDF report</li>
+          <li>5 reports</li>
+          <li>PDF reports</li>
           <li>Email delivery</li>
-          <li>Valid for 1 product</li>
+          <li>Priority support</li>
         </ul>
-        <button class="btn btn-primary" onclick="scrollToEmail()">Get Report</button>
+        <button class="btn btn-primary" onclick="selectTier('early_bird', '$19')">Choose Plan</button>
       </div>
 
       <div class="pricing-card featured">
-        <div class="badge">⭐ EARLY BIRD</div>
-        <h3>Forever Access</h3>
-        <div class="price">$19</div>
-        <div class="price-period">One-time, unlimited reports</div>
+        <div class="badge">⭐ POPULAR</div>
+        <h3>Pro</h3>
+        <div class="price">$99</div>
+        <div class="price-period">One-time payment</div>
         <ul>
-          <li>Unlimited reports forever</li>
-          <li>All premium features</li>
-          <li>Priority email support</li>
-          <li>First 100 customers only</li>
+          <li>20 reports</li>
+          <li>All Early Bird features</li>
+          <li>Advanced analytics</li>
+          <li>Export options</li>
         </ul>
-        <button class="btn btn-primary" onclick="scrollToEmail()">Claim Early-Bird</button>
+        <button class="btn btn-primary" onclick="selectTier('pro', '$99')">Choose Plan</button>
       </div>
 
       <div class="pricing-card">
-        <h3>Monthly Pro</h3>
-        <div class="price">$50</div>
-        <div class="price-period">Per month, cancel anytime</div>
+        <h3>Professional</h3>
+        <div class="price">$199</div>
+        <div class="price-period">One-time payment</div>
         <ul>
-          <li>Unlimited monthly reports</li>
-          <li>Advanced analytics</li>
-          <li>Priority support</li>
-          <li>Team collaboration</li>
+          <li>50 reports</li>
+          <li>All Pro features</li>
+          <li>API access</li>
+          <li>Dedicated support</li>
         </ul>
-        <button class="btn btn-primary" onclick="scrollToEmail()">Subscribe</button>
+        <button class="btn btn-primary" onclick="selectTier('professional', '$199')">Choose Plan</button>
       </div>
     </div>
   </section>
 
-  <!-- Email Capture / CTA -->
+  <!-- Tier Selection & ASIN Input -->
   <section class="email-capture" id="email-capture">
-    <h2>Ready to Transform Your Amazon Reviews?</h2>
-    <p>Get your first report today. No credit card required for samples.</p>
-    <form class="email-form" onsubmit="handleEmailSubmit(event)">
+    <h2 id="tier-section-title">Ready to Transform Your Amazon Reviews?</h2>
+    <p id="tier-section-subtitle" style="display:none;">Enter your product ASIN to get started.</p>
+    
+    <div id="tier-selection" style="display:none; margin: 40px 0;">
+      <p style="margin-bottom: 20px; font-size: 18px;"><strong>Selected Plan:</strong> <span id="selected-tier" style="color: #FFD700;"></span></p>
+    </div>
+
+    <form class="email-form" id="asin-form" onsubmit="handleAsinSubmit(event)" style="display:none;">
       <input type="email" id="email-input" placeholder="your@email.com" required>
+      <input type="text" id="asin-input" placeholder="Enter ASIN (10 chars) or product link" required>
+      <button type="submit">Analyze Product</button>
+    </form>
+
+    <form class="email-form" id="email-form" onsubmit="handleEmailSubmit(event)">
+      <input type="email" id="email-input-sample" placeholder="your@email.com" required>
       <input type="text" id="name-input" placeholder="Your Name" required>
       <button type="submit">Get Sample</button>
     </form>
+
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p>Generating your sample report...</p>
+      <p>Generating your report...</p>
     </div>
   </section>
 
@@ -736,6 +748,15 @@
 
   <!-- Page Scripts -->
   <script>
+    // Tier pricing configuration (easy to change)
+    const TIERS = {
+      'early_bird': { price: 19, reports: 5, name: 'Early Bird ($19)' },
+      'pro': { price: 99, reports: 20, name: 'Pro ($99)' },
+      'professional': { price: 199, reports: 50, name: 'Professional ($199)' }
+    };
+
+    let selectedTier = null;
+
     // Update counter periodically
     function updateCounter() {
       const current = parseInt(document.getElementById('counter').innerText.replace(/,/g, ''));
@@ -753,11 +774,90 @@
       trackEvent('faq_clicked', { question: element.innerText });
     }
 
-    // Email submission
+    // Tier selection
+    function selectTier(tierKey, priceDisplay) {
+      selectedTier = tierKey;
+      document.getElementById('tier-section-title').textContent = 'Enter Your Product Details';
+      document.getElementById('tier-section-subtitle').style.display = 'block';
+      document.getElementById('tier-selection').style.display = 'block';
+      document.getElementById('email-form').style.display = 'none';
+      document.getElementById('asin-form').style.display = 'flex';
+      document.getElementById('selected-tier').textContent = TIERS[tierKey].name + ' (' + TIERS[tierKey].reports + ' reports)';
+      
+      document.getElementById('email-capture').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('email-input').focus();
+      
+      trackEvent('tier_selected', { tier: tierKey, price: priceDisplay });
+    }
+
+    // ASIN submission
+    async function handleAsinSubmit(event) {
+      event.preventDefault();
+      
+      if (!selectedTier) {
+        alert('Please select a pricing plan first.');
+        return;
+      }
+
+      const email = document.getElementById('email-input').value;
+      const asin = document.getElementById('asin-input').value.trim();
+
+      // Extract ASIN from URL if needed
+      let cleanAsin = asin;
+      if (asin.includes('amazon.com')) {
+        const match = asin.match(/\/dp\/([A-Z0-9]{10})/);
+        cleanAsin = match ? match[1] : asin;
+      }
+
+      if (cleanAsin.length !== 10) {
+        alert('Invalid ASIN. Please enter a 10-character product ID.');
+        return;
+      }
+
+      trackEvent('report_requested', { tier: selectedTier, asin: cleanAsin });
+      document.getElementById('loading').classList.add('show');
+
+      try {
+        const response = await fetch('/api/generate-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            email, 
+            asin: cleanAsin,
+            tier: selectedTier 
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('✅ Report being generated! Check your email (' + email + ') in 2-5 minutes.');
+          document.getElementById('email-input').value = '';
+          document.getElementById('asin-input').value = '';
+          selectedTier = null;
+          document.getElementById('asin-form').style.display = 'none';
+          document.getElementById('email-form').style.display = 'flex';
+          document.getElementById('tier-section-title').textContent = 'Ready to Transform Your Amazon Reviews?';
+          document.getElementById('tier-section-subtitle').style.display = 'none';
+          document.getElementById('tier-selection').style.display = 'none';
+          trackEvent('report_generated_success', { tier: selectedTier, asin: cleanAsin });
+        } else {
+          alert('Error: ' + (result.error || 'Failed to generate report'));
+          trackEvent('report_error', { tier: selectedTier, error: result.error });
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+        trackEvent('report_fetch_error', { error: error.message });
+      } finally {
+        document.getElementById('loading').classList.remove('show');
+      }
+    }
+
+    // Email submission (sample)
     async function handleEmailSubmit(event) {
       event.preventDefault();
       
-      const email = document.getElementById('email-input').value;
+      const email = document.getElementById('email-input-sample').value;
       const name = document.getElementById('name-input').value;
 
       trackEvent('sample_requested', { email });
@@ -776,7 +876,7 @@
 
         if (result.success) {
           alert('✅ Sample report sent to ' + email + '! Check your inbox.');
-          document.getElementById('email-input').value = '';
+          document.getElementById('email-input-sample').value = '';
           document.getElementById('name-input').value = '';
           trackEvent('sample_generated_success', { email });
         } else {
@@ -794,7 +894,7 @@
     // Show sample form
     function showSampleForm() {
       document.getElementById('email-capture').scrollIntoView({ behavior: 'smooth' });
-      document.getElementById('email-input').focus();
+      document.getElementById('email-input-sample').focus();
       trackEvent('cta_clicked', { type: 'free_sample' });
     }
 

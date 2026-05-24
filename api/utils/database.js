@@ -88,6 +88,34 @@ export async function getUserReports(userEmail) {
 }
 
 /**
+ * Get count of user's reports (for tier limit checking)
+ * 
+ * @param {string} userEmail - User email
+ * @returns {Promise<number>} Number of reports generated
+ */
+export async function getUserReportCount(userEmail) {
+  const supabase = getSupabaseClient();
+
+  if (!supabase) {
+    console.log(`Mock: Counting reports for ${userEmail}`);
+    return 0; // No reports in mock mode
+  }
+
+  try {
+    const { count, error } = await supabase
+      .from("reports")
+      .select("*", { count: "exact", head: true })
+      .eq("user_email", userEmail);
+
+    if (error) throw error;
+    return count || 0;
+  } catch (error) {
+    console.error("Database error:", error.message);
+    return 0;
+  }
+}
+
+/**
  * Save user subscription
  * 
  * @param {Object} subscription - Subscription data
@@ -220,6 +248,7 @@ function getMockSubscription(baseData) {
 export default {
   saveReport,
   getUserReports,
+  getUserReportCount,
   saveSubscription,
   getSubscription,
   logAnalyticsEvent
