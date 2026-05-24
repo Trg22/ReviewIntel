@@ -43,6 +43,12 @@ app.get("/api/health", (req, res) => {
     status: "ok",
     service: "ReviewIntel API",
     timestamp: new Date().toISOString(),
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      STRIPE_KEY_SET: !!process.env.STRIPE_SECRET_KEY,
+      SUPABASE_URL_SET: !!process.env.SUPABASE_URL,
+      SUPABASE_KEY_SET: !!process.env.SUPABASE_ANON_KEY,
+    }
   });
 });
 
