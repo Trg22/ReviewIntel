@@ -280,3 +280,16 @@ server.on("clientError", (error, socket) => {
 });
 
 export default app;
+
+// Checkout success page
+app.get("/api/checkout-success", async (req, res) => {
+  try {
+    const { default: successHandler } = await import(
+      "./api/checkout-success.js"
+    );
+    return successHandler(req, res);
+  } catch (error) {
+    console.error("Error loading checkout-success handler:", error);
+    res.status(500).json({ error: "Internal error", details: error.message });
+  }
+});
