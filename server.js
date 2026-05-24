@@ -1,6 +1,10 @@
 import express from "express";
 import { LANDING_HTML } from "./landing-template.js";
 
+console.log("[STARTUP] server.js loaded successfully");
+console.log("[STARTUP] PORT env:", process.env.PORT);
+console.log("[STARTUP] NODE_ENV:", process.env.NODE_ENV);
+
 const app = express();
 
 // Middleware
@@ -136,8 +140,9 @@ process.on("uncaughtException", (error) => {
 
 // Start server on all environments (required for Railway)
 const PORT = process.env.PORT || 3000;
+console.log("[STARTUP] Attempting to bind to port", PORT);
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`ReviewIntel server running on port ${PORT}`);
+  console.log(`[STARTUP] ReviewIntel server running on port ${PORT}`);
   console.log(`Available endpoints:`);
   console.log(`  GET  /api/status`);
   console.log(`  GET  /api/health`);
