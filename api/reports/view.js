@@ -25,14 +25,23 @@ export default async function handler(req, res) {
   try {
     // Express passes route params in req.params, not req.query
     const id = req.params?.id || req.query?.id;
+    
+    console.log("[DEBUG] Incoming request to /api/reports/:id");
+    console.log("[DEBUG] req.params:", JSON.stringify(req.params));
+    console.log("[DEBUG] req.query:", JSON.stringify(req.query));
+    console.log("[DEBUG] Extracted ID:", id);
 
     if (!id) {
+      console.error("[ERROR] No ID found in params or query");
       return res.status(400).json({ error: "Report ID is required" });
     }
 
     // Initialize Supabase
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_ANON_KEY;
+
+    console.log("[DEBUG] Supabase URL exists:", !!supabaseUrl);
+    console.log("[DEBUG] Supabase Key exists:", !!supabaseKey);
 
     if (!supabaseUrl || !supabaseKey) {
       console.error("❌ Supabase credentials missing");
@@ -42,11 +51,14 @@ export default async function handler(req, res) {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Fetch report from Supabase
+    console.log(`[DEBUG] Querying reports table for id=${id}`);
     const { data: report, error } = await supabase
       .from("reports")
       .select("*")
       .eq("id", id)
       .single();
+
+    console.log("[DEBUG] Query result - error:", error?.message || "none", "hasData:", !!report);
 
     if (error || !report) {
       console.error("Report not found:", error?.message || "No report with that ID");
