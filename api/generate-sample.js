@@ -145,11 +145,25 @@ async function handleGenerateSample(req, res) {
       "B0SAMPLE123"
     );
 
-    // Send email with PDF attachment
+    // Save to database FIRST to get the report ID
+    const savedReport = await saveReport({
+      userEmail: email,
+      asin: "B0SAMPLE123",
+      productName: "Example Amazon Product",
+      analysis,
+      pdfUrl: "https://reviewintel.onrender.com/reports/sample",
+      isSampleReport: true,
+    });
+
+    // Get the report ID from the saved report
+    const reportId = savedReport?.id || "sample";
+    const reportUrl = `https://reviewintel.onrender.com/api/reports/${reportId}`;
+
+    // Send email with PDF attachment and correct report URL
     const emailTemplate = getReportEmailTemplate(
       name,
       "Example Amazon Product",
-      "https://review-intel.com/dashboard"
+      reportUrl
     );
 
     const emailResult = await sendEmail({
@@ -169,16 +183,6 @@ async function handleGenerateSample(req, res) {
         advice: "The sample PDF was generated but email sending is not configured. Please contact support or check your email settings."
       });
     }
-
-    // Save to database
-    await saveReport({
-      userEmail: email,
-      asin: "B0SAMPLE123",
-      productName: "Example Product",
-      analysis,
-      pdfUrl: "https://review-intel.com/reports/sample",
-      isSampleReport: true,
-    });
 
     return res.status(200).json({
       success: true,
