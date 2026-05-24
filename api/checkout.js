@@ -5,10 +5,16 @@ let stripe = null;
 function getStripe() {
   if (!stripe) {
     // Use env var if available
-    const key = (process.env.STRIPE_SECRET_KEY || "").trim();
+    let key = (process.env.STRIPE_SECRET_KEY || "").trim();
+    
+    // Validate key format (should start with sk_test_ or sk_live_)
+    if (key && !key.match(/^sk_(test|live)_/)) {
+      console.warn("[CHECKOUT] Invalid Stripe key format (doesn't start with sk_test_ or sk_live_)");
+      key = null;
+    }
     
     if (!key) {
-      console.warn("[CHECKOUT] Stripe key not configured - checkout will fail");
+      console.log("[CHECKOUT] Stripe key not configured");
       return null;
     }
     
