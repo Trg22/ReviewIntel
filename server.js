@@ -56,6 +56,38 @@ app.get("/api/dashboard", async (req, res) => {
   }
 });
 
+// Reviews endpoint
+app.post("/api/reviews", async (req, res) => {
+  try {
+    const { default: reviewsHandler } = await import("./api/reviews.js");
+    return reviewsHandler(req, res);
+  } catch (error) {
+    console.error("Error loading reviews handler:", error);
+    res.status(500).json({ error: "Internal error", details: error.message });
+  }
+});
+
+app.get("/api/reviews", async (req, res) => {
+  try {
+    const { default: reviewsHandler } = await import("./api/reviews.js");
+    return reviewsHandler(req, res);
+  } catch (error) {
+    console.error("Error loading reviews handler:", error);
+    res.status(500).json({ error: "Internal error", details: error.message });
+  }
+});
+
+// Checkout endpoint
+app.post("/api/checkout", async (req, res) => {
+  try {
+    const { default: checkoutHandler } = await import("./api/checkout.js");
+    return checkoutHandler(req, res);
+  } catch (error) {
+    console.error("Error loading checkout handler:", error);
+    res.status(500).json({ error: "Internal error", details: error.message });
+  }
+});
+
 // Generate sample endpoint
 app.get("/api/generate-sample", async (req, res) => {
   try {
@@ -115,8 +147,11 @@ app.use((req, res) => {
       "GET /api/status",
       "GET /api/health",
       "GET /api/dashboard?email=user@example.com",
+      "GET /api/reviews?productId=X&limit=10&offset=0",
+      "POST /api/reviews",
       "GET /api/generate-sample?page=1&limit=10",
       "POST /api/generate-sample",
+      "POST /api/checkout",
       "POST /api/checkout-webhook",
     ],
   });
@@ -154,8 +189,11 @@ const server = app.listen(PORT, "0.0.0.0", () => {
   console.log(`  GET  /api/status`);
   console.log(`  GET  /api/health`);
   console.log(`  GET  /api/dashboard?email=user@example.com`);
+  console.log(`  GET  /api/reviews?productId=X&limit=10&offset=0`);
+  console.log(`  POST /api/reviews`);
   console.log(`  GET  /api/generate-sample?page=1&limit=10`);
   console.log(`  POST /api/generate-sample`);
+  console.log(`  POST /api/checkout`);
   console.log(`  POST /api/checkout-webhook`);
 });
 
