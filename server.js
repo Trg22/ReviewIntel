@@ -154,6 +154,20 @@ app.post("/api/generate-report", async (req, res) => {
   }
 });
 
+// Stripe checkout endpoint
+app.post("/api/stripe-checkout", async (req, res) => {
+  try {
+    const { default: stripeCheckoutHandler } = await import(
+      "./api/stripe-checkout.js"
+    );
+    return stripeCheckoutHandler(req, res);
+  } catch (error) {
+    console.error("Error loading stripe-checkout handler:", error);
+    res.status(500).json({ error: "Internal error", details: error.message });
+  }
+});
+
+
 // Report viewing endpoint
 app.get("/api/reports/:id", async (req, res) => {
   try {

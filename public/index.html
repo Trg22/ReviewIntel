@@ -746,6 +746,9 @@
     }
   </script>
 
+  <!-- Stripe.js -->
+  <script src="https://js.stripe.com/v3/"></script>
+
   <!-- Page Scripts -->
   <script>
     // Tier pricing configuration (easy to change)
@@ -790,7 +793,7 @@
       trackEvent('tier_selected', { tier: tierKey, price: priceDisplay });
     }
 
-    // ASIN submission
+    // ASIN submission - Redirect to Stripe Checkout
     async function handleAsinSubmit(event) {
       event.preventDefault();
       
@@ -814,40 +817,58 @@
         return;
       }
 
-      trackEvent('report_requested', { tier: selectedTier, asin: cleanAsin });
+      // Validate email
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      trackEvent('checkout_initiated', { tier: selectedTier, asin: cleanAsin });
       document.getElementById('loading').classList.add('show');
 
       try {
-        const response = await fetch('/api/generate-report', {
+        // Step 1: Create Stripe checkout session
+        const checkoutResponse = await fetch('/api/stripe-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            email, 
-            asin: cleanAsin,
-            tier: selectedTier 
+          body: JSON.stringify({
+            tier: selectedTier,
+            email: email,
+            successUrl: `${window.location.origin}/api/reports/success?asin=${cleanAsin}&tier=${selectedTier}`,
+            cancelUrl: `${window.location.origin}`
           })
         });
 
-        const result = await response.json();
+        const checkoutData = await checkoutResponse.json();
 
-        if (result.success) {
-          alert('✅ Report being generated! Check your email (' + email + ') in 2-5 minutes.');
-          document.getElementById('email-input').value = '';
-          document.getElementById('asin-input').value = '';
-          selectedTier = null;
-          document.getElementById('asin-form').style.display = 'none';
-          document.getElementById('email-form').style.display = 'flex';
-          document.getElementById('tier-section-title').textContent = 'Ready to Transform Your Amazon Reviews?';
-          document.getElementById('tier-section-subtitle').style.display = 'none';
-          document.getElementById('tier-selection').style.display = 'none';
-          trackEvent('report_generated_success', { tier: selectedTier, asin: cleanAsin });
-        } else {
-          alert('Error: ' + (result.error || 'Failed to generate report'));
-          trackEvent('report_error', { tier: selectedTier, error: result.error });
+        if (!checkoutData.success || !checkoutData.sessionId) {
+          alert('Error: ' + (checkoutData.error || 'Failed to start checkout'));
+          trackEvent('checkout_failed', { error: checkoutData.error });
+          return;
         }
+
+        // Step 2: Store user info in sessionStorage for after payment
+        sessionStorage.setItem('pendingReport', JSON.stringify({
+          email,
+          asin: cleanAsin,
+          tier: selectedTier,
+          timestamp: Date.now()
+        }));
+
+        // Step 3: Redirect to Stripe Checkout
+        const stripe = Stripe('pk_live_YOUR_STRIPE_PUBLIC_KEY'); // Will be set via env
+        const result = await stripe.redirectToCheckout({
+          sessionId: checkoutData.sessionId
+        });
+
+        if (result.error) {
+          alert('Error redirecting to checkout: ' + result.error.message);
+          trackEvent('stripe_redirect_error', { error: result.error.message });
+        }
+
       } catch (error) {
         alert('Error: ' + error.message);
-        trackEvent('report_fetch_error', { error: error.message });
+        trackEvent('checkout_fetch_error', { error: error.message });
       } finally {
         document.getElementById('loading').classList.remove('show');
       }
