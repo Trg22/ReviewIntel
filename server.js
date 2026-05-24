@@ -141,6 +141,19 @@ app.post("/api/generate-sample", async (req, res) => {
   }
 });
 
+// Report viewing endpoint
+app.get("/api/reports/:id", async (req, res) => {
+  try {
+    const { default: reportHandler } = await import(
+      "./api/reports/[id].js"
+    );
+    return reportHandler(req, res);
+  } catch (error) {
+    console.error("Error loading report handler:", error);
+    res.status(500).send(`<html><body><h1>Error Loading Report</h1><p>${error.message}</p></body></html>`);
+  }
+});
+
 // Checkout webhook endpoint
 app.post("/api/checkout-webhook", async (req, res) => {
   try {
@@ -179,6 +192,7 @@ app.use((req, res) => {
       "POST /api/reviews",
       "GET /api/generate-sample?page=1&limit=10",
       "POST /api/generate-sample",
+      "GET /api/reports/:id",
       "POST /api/checkout",
       "POST /api/checkout-webhook",
     ],
