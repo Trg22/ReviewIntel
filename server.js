@@ -6,21 +6,12 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 dotenv.config();
 
-// Fallback env vars for testing (will be overridden by actual env vars if set)
-// Trim whitespace from URLs as Render sometimes includes newlines
-if (!process.env.SUPABASE_URL) {
-  process.env.SUPABASE_URL = "https://feesmokjbrhgltguokpi.supabase.co";
-} else {
-  process.env.SUPABASE_URL = process.env.SUPABASE_URL.trim();
-}
+// **CRITICAL FIX**: Render sometimes corrupts multiline env vars
+// Force set Supabase credentials to known-good values
+process.env.SUPABASE_URL = "https://feesmokjbrhgltguokpi.supabase.co";
+process.env.SUPABASE_ANON_KEY = "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI";
 
-if (!process.env.SUPABASE_ANON_KEY) {
-  process.env.SUPABASE_ANON_KEY = "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI";
-} else {
-  process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY.trim();
-}
-
-// Trim Stripe key too
+// Trim Stripe key if set
 if (process.env.STRIPE_SECRET_KEY) {
   process.env.STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY.trim();
 }
