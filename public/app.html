@@ -452,6 +452,9 @@
           return;
         }
 
+        // Store session ID for polling page
+        localStorage.setItem('stripeSessionId', data.sessionId);
+        
         // Store pending report info
         sessionStorage.setItem('pendingReport', JSON.stringify({
           email,

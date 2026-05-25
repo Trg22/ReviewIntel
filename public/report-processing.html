@@ -109,9 +109,9 @@
   </div>
 
   <script>
-    // Get session_id from URL
+    // Get session_id from localStorage (stored by app.html before Stripe redirect)
+    const sessionId = localStorage.getItem('stripeSessionId');
     const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session_id');
     const asin = urlParams.get('asin');
     const tier = urlParams.get('tier');
 
