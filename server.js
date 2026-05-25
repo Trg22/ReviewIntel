@@ -11,11 +11,15 @@ dotenv.config();
 process.env.SUPABASE_URL = "https://feesmokjbrhgltguokpi.supabase.co";
 process.env.SUPABASE_ANON_KEY = "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI";
 
-// **CRITICAL**: Remove placeholder/corrupted Stripe keys from .env.local
-// Only use Render dashboard values
-if (process.env.STRIPE_SECRET_KEY === "***" || 
-    process.env.STRIPE_SECRET_KEY?.includes("...")) {
-  delete process.env.STRIPE_SECRET_KEY;
+// **CRITICAL**: Remove placeholder/corrupted Stripe keys
+if (!process.env.STRIPE_SECRET_KEY || 
+    process.env.STRIPE_SECRET_KEY === "***" || 
+    process.env.STRIPE_SECRET_KEY.includes("...") ||
+    process.env.STRIPE_SECRET_KEY.includes("[from.en")) {
+  console.error("[FATAL] STRIPE_SECRET_KEY is invalid or missing!");
+  console.error("  Current value:", process.env.STRIPE_SECRET_KEY);
+  console.error("  Please set STRIPE_SECRET_KEY in Render Environment variables");
+  // Don't crash — let handler catch it
 }
 
 // Trim Stripe key if set (remove any accidental whitespace)
