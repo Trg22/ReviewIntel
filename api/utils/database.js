@@ -43,6 +43,7 @@ export async function saveReport(report) {
         product_asin: report.asin,
         product_name: report.productName,
         analysis_results: report.analysis,
+        stripe_session_id: report.stripeSessionId,
         pdf_url: report.pdfUrl,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()

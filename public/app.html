@@ -440,7 +440,7 @@
           body: JSON.stringify({
             tier: selectedTier,
             email: email,
-            successUrl: `${window.location.origin}/api/reports/success?asin=${cleanAsin}&tier=${selectedTier}`,
+            successUrl: `${window.location.origin}/report-processing.html?asin=${cleanAsin}&tier=${selectedTier}`,
             cancelUrl: `${window.location.origin}/app`
           })
         });

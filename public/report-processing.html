@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generating Your Report - ReviewIntel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #3366cc 0%, #2952a3 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #3366cc;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 40px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e0e0e0;
+      border-top: 4px solid #3366cc;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 20px 0;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .message {
+      color: #666;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+
+    .error-message {
+      color: #d32f2f;
+      background: #ffebee;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .success-message {
+      color: #388e3c;
+      background: #e8f5e9;
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">ReviewIntel</div>
+    <h1>Generating Your Report</h1>
+    <p class="subtitle">Your report is being prepared. This typically takes 30-60 seconds.</p>
+    
+    <div class="spinner"></div>
+    
+    <p class="message">Please don't close this window...</p>
+    
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage" style="display: none;">
+      Report ready! Redirecting...
+    </div>
+  </div>
+
+  <script>
+    // Get session_id from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('session_id');
+    const asin = urlParams.get('asin');
+    const tier = urlParams.get('tier');
+
+    if (!sessionId) {
+      document.getElementById('errorMessage').textContent = 'Invalid session. Please try again.';
+      document.getElementById('errorMessage').style.display = 'block';
+      document.querySelector('.spinner').style.display = 'none';
+    } else {
+      // Poll for report every 2 seconds (max 60 seconds / 30 attempts)
+      let attempts = 0;
+      const maxAttempts = 30;
+
+      const pollForReport = async () => {
+        attempts++;
+        
+        try {
+          const response = await fetch(`/api/get-report?session_id=${sessionId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.reportId || data.report) {
+              // Report is ready!
+              document.getElementById('successMessage').style.display = 'block';
+              document.querySelector('.spinner').style.display = 'none';
+              document.querySelector('.message').style.display = 'none';
+              
+              // Redirect to report view after 1 second
+              setTimeout(() => {
+                window.location.href = `/report.html?id=${data.reportId || data.report.id}`;
+              }, 1000);
+              return;
+            }
+          } else if (response.status === 404) {
+            // Not ready yet, continue polling
+            if (attempts < maxAttempts) {
+              setTimeout(pollForReport, 2000);
+            } else {
+              // Timeout after 60 seconds
+              throw new Error('Report generation took too long. Please try again.');
+            }
+          } else {
+            throw new Error(`Error: ${response.statusText}`);
+          }
+        } catch (error) {
+          document.getElementById('errorMessage').textContent = error.message || 'Error retrieving your report.';
+          document.getElementById('errorMessage').style.display = 'block';
+          document.querySelector('.spinner').style.display = 'none';
+          document.querySelector('.message').style.display = 'none';
+        }
+      };
+
+      // Start polling
+      pollForReport();
+    }
+  </script>
+</body>
+</html>

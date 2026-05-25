@@ -80,7 +80,7 @@ export default async function handler(req, res) {
       });
 
       // Generate report asynchronously (don't wait)
-      generateReportAsync(email, asin, tier).catch(error => {
+      generateReportAsync(email, asin, tier, session.id).catch(error => {
         console.error("Error generating report after payment:", error);
       });
 
@@ -101,9 +101,9 @@ export default async function handler(req, res) {
  * Generate report after successful payment
  * Runs asynchronously to keep webhook response fast
  */
-async function generateReportAsync(email, asin, tier) {
+async function generateReportAsync(email, asin, tier, stripeSessionId) {
   try {
-    console.log(`[REPORT] Generating report for ${email}, ASIN: ${asin}, Tier: ${tier}`);
+    console.log(`[REPORT] Generating report for ${email}, ASIN: ${asin}, Tier: ${tier}, Session: ${stripeSessionId}`);
 
     // Step 1: Scrape reviews
     const reviewsData = getMockApifyResponse(asin);
@@ -121,6 +121,7 @@ async function generateReportAsync(email, asin, tier) {
       productName: asin,
       analysis,
       tier,
+      stripeSessionId,
       pdfUrl: `https://reviewintels.com/api/reports/${asin}`
     });
 
