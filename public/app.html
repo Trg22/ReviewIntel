@@ -342,6 +342,7 @@
 
     function nextStep(event) {
       if (event) event.preventDefault();
+      clearError(); // Clear any previous errors when moving to next step
 
       // Step 1 → 2
       if (document.getElementById('tier-section').classList.contains('active')) {
@@ -409,44 +410,48 @@
       setTimeout(() => errorEl.classList.remove('show'), 5000);
     }
 
+    function clearError() {
+      const errorEl = document.getElementById('error');
+      errorEl.textContent = '';
+      errorEl.classList.remove('show');
+    }
+
     async function handleCheckout() {
-      const email = document.getElementById('email-input').value;
-      const asin = document.getElementById('asin-input').value.trim();
+      // Use stored confirmation data instead of re-reading inputs
+      const confirmEmail = document.getElementById('confirm-email').textContent;
+      const confirmAsin = document.getElementById('confirm-asin').textContent;
+      const confirmTier = document.querySelector('.tier-card.selected')?.dataset.tier;
 
-      // Extract ASIN from URL if needed
-      let cleanAsin = asin;
-      if (asin.includes('amazon.com')) {
-        const match = asin.match(/\/dp\/([A-Z0-9]{10})/);
-        cleanAsin = match ? match[1] : asin;
-      }
-
-      if (cleanAsin.length !== 10) {
-        showError('Invalid ASIN. Please enter a 10-character product ID.');
-        return;
-      }
-
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        showError('Please enter a valid email address.');
+      if (!confirmTier || !confirmEmail || !confirmAsin) {
+        showError('Missing order details. Please go back and re-enter your information.');
+        console.error('Missing data:', { tier: confirmTier, email: confirmEmail, asin: confirmAsin });
         return;
       }
 
       document.getElementById('loading').classList.add('show');
 
       try {
+        console.log('Sending checkout request:', {
+          tier: confirmTier,
+          email: confirmEmail,
+          asin: confirmAsin
+        });
+
         // Create Stripe checkout session
         const response = await fetch('/api/stripe-checkout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            tier: selectedTier,
-            email: email,
-            asin: cleanAsin,
-            successUrl: `${window.location.origin}/report-processing.html?asin=${cleanAsin}&tier=${selectedTier}`,
+            tier: confirmTier,
+            email: confirmEmail,
+            asin: confirmAsin,
+            successUrl: `${window.location.origin}/report-processing.html?asin=${confirmAsin}&tier=${confirmTier}`,
             cancelUrl: `${window.location.origin}/app`
           })
         });
 
         const data = await response.json();
+        console.log('Stripe response:', data);
 
         if (!data.success || !data.sessionId) {
           showError('Error: ' + (data.error || 'Failed to start checkout'));
@@ -458,9 +463,9 @@
         
         // Store pending report info
         sessionStorage.setItem('pendingReport', JSON.stringify({
-          email,
-          asin: cleanAsin,
-          tier: selectedTier,
+          email: confirmEmail,
+          asin: confirmAsin,
+          tier: confirmTier,
           timestamp: Date.now()
         }));
 
@@ -470,6 +475,7 @@
 
       } catch (error) {
         showError('Error: ' + error.message);
+        console.error('Checkout error:', error);
       } finally {
         document.getElementById('loading').classList.remove('show');
       }
