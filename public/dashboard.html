@@ -258,11 +258,14 @@
 
       data.reports.forEach(report => {
         const date = new Date(report.createdAt || report.timestamp).toLocaleDateString();
+        const analysisResults = report.analysisResults || {};
+        const reviewsAnalyzed = analysisResults.totalReviewsAnalyzed || 0;
+        const avgRating = analysisResults.averageRating || 'N/A';
         html += `
           <div class="report-card">
             <h3>ASIN: ${report.asin || 'Unknown'}</h3>
-            <p><strong>Tier:</strong> ${report.tier || 'N/A'}</p>
-            <p><strong>Reviews Analyzed:</strong> ${report.reviewsAnalyzed || 0}</p>
+            <p><strong>Reviews Analyzed:</strong> ${reviewsAnalyzed}</p>
+            <p><strong>Average Rating:</strong> ${avgRating}</p>
             <p class="date">Generated: ${date}</p>
             <a href="/api/reports/${report.id}" download>Download PDF Report</a>
           </div>

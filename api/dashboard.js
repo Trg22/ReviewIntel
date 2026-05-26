@@ -140,13 +140,13 @@ function calculateDashboardStats(reports) {
   reports.forEach((report) => {
     if (report.analysis_results) {
       // Count reviews if available in analysis
-      if (report.analysis_results.total_reviews) {
-        totalReviews += report.analysis_results.total_reviews;
+      if (report.analysis_results.totalReviewsAnalyzed) {
+        totalReviews += report.analysis_results.totalReviewsAnalyzed;
       }
 
       // Calculate average rating
-      if (report.analysis_results.average_rating) {
-        sumRatings += report.analysis_results.average_rating;
+      if (report.analysis_results.averageRating) {
+        sumRatings += report.analysis_results.averageRating;
         ratingCount++;
       }
     }
