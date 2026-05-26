@@ -69,8 +69,8 @@ export default async function handler(req, res) {
     const analysis = report.analysis_results || {};
     const productName = report.product_name || "Amazon Product";
     const asin = report.product_asin || "N/A";
-    const avgRating = analysis.avgRating || 4.2;
-    const totalReviews = analysis.totalReviews || 1500;
+    const avgRating = analysis.averageRating || 4.2;
+    const totalReviews = analysis.totalReviewsAnalyzed || 1500;
 
     // Build HTML page
     const html = generateReportPage({

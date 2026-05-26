@@ -64,13 +64,19 @@ export default async function handler(req, res) {
     });
 
     // Fetch user's reports
-    const reports = (await getUserReports(email)) || [];
+    let reports = (await getUserReports(email)) || [];
+    
+    // Sort by created_at descending (newest first) and take only the latest
+    reports.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const latestReport = reports.length > 0 ? [reports[0]] : [];
+    
+    console.log(`[dashboard] Found ${reports.length} total reports, showing latest 1`);
 
     // Fetch subscription info
     const subscription = await getSubscription(email);
 
     // Calculate dashboard statistics
-    const stats = calculateDashboardStats(reports);
+    const stats = calculateDashboardStats(latestReport);
 
     const dashboardData = {
       success: true,
@@ -78,7 +84,7 @@ export default async function handler(req, res) {
       stats: {
         reviewsCount: stats.totalReviews,
         averageRating: stats.averageRating,
-        reportsCount: reports.length,
+        reportsCount: latestReport.length,
         subscriptionCount: subscription ? 1 : 0,
       },
       subscription: subscription
@@ -91,7 +97,7 @@ export default async function handler(req, res) {
             updatedAt: subscription.updated_at,
           }
         : null,
-      reports: reports.map((report) => ({
+      reports: latestReport.map((report) => ({
         id: report.id,
         asin: report.product_asin,
         productName: report.product_name,
@@ -102,8 +108,8 @@ export default async function handler(req, res) {
       })),
       metadata: {
         hasActiveSubscription: subscription?.status === "active",
-        lastReportDate: reports.length > 0 ? reports[0].created_at : null,
-        accountCreatedAt: reports.length > 0 ? reports[reports.length - 1].created_at : null,
+        lastReportDate: latestReport.length > 0 ? latestReport[0].created_at : null,
+        accountCreatedAt: latestReport.length > 0 ? latestReport[0].created_at : null,
       },
       timestamp: new Date().toISOString(),
     };
