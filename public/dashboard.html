@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Reports - Reviewintels</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #3366cc 0%, #2952a3 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: bold;
+      color: #3366cc;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .email {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .reports-section {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    }
+
+    .reports-section h2 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 40px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e0e0e0;
+      border-top: 4px solid #3366cc;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .reports-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .report-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 20px;
+      background: #f9f9f9;
+      transition: all 0.3s;
+    }
+
+    .report-card:hover {
+      border-color: #3366cc;
+      box-shadow: 0 5px 15px rgba(51, 102, 204, 0.1);
+    }
+
+    .report-card h3 {
+      color: #333;
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+
+    .report-card p {
+      color: #666;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .report-card .date {
+      color: #999;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+
+    .report-card a {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #3366cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background 0.3s;
+    }
+
+    .report-card a:hover {
+      background: #2952a3;
+    }
+
+    .no-reports {
+      text-align: center;
+      color: #999;
+      padding: 60px 40px;
+    }
+
+    .error {
+      background: #ffebee;
+      color: #d32f2f;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .success {
+      background: #e8f5e9;
+      color: #388e3c;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      background: #3366cc;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 20px;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #2952a3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">Reviewintels</div>
+      <h1>Your Reports Dashboard</h1>
+      <p class="email" id="emailDisplay">Loading...</p>
+    </header>
+
+    <div class="reports-section">
+      <h2>Your Generated Reports</h2>
+      
+      <div id="successMessage" class="success" style="display: none;">
+        ✅ Report generated and sent to your email!
+      </div>
+
+      <div id="errorMessage" class="error" style="display: none;"></div>
+
+      <div id="reportsContainer">
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>Loading your reports...</p>
+        </div>
+      </div>
+
+      <button onclick="location.href = '/app.html'">Generate Another Report</button>
+    </div>
+  </div>
+
+  <script>
+    async function loadDashboard() {
+      try {
+        // Get email from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+
+        if (!email) {
+          showError('No email provided. Please start from the checkout page.');
+          return;
+        }
+
+        // Display email
+        document.getElementById('emailDisplay').textContent = `Logged in as: ${email}`;
+
+        // Show success message if this is fresh from report generation
+        const urlParams2 = new URLSearchParams(window.location.search);
+        if (urlParams2.get('new') === '1') {
+          document.getElementById('successMessage').style.display = 'block';
+        }
+
+        // Fetch user reports
+        const response = await fetch(`/api/dashboard?email=${encodeURIComponent(email)}`);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to load reports (${response.status})`);
+        }
+
+        const data = await response.json();
+        displayReports(data);
+      } catch (error) {
+        console.error('Error loading dashboard:', error);
+        showError(`Error: ${error.message}`);
+      }
+    }
+
+    function displayReports(data) {
+      const container = document.getElementById('reportsContainer');
+
+      if (!data.reports || data.reports.length === 0) {
+        container.innerHTML = `
+          <div class="no-reports">
+            <p>No reports yet. Get started by analyzing an Amazon product!</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '<div class="reports-grid">';
+
+      data.reports.forEach(report => {
+        const date = new Date(report.createdAt || report.timestamp).toLocaleDateString();
+        html += `
+          <div class="report-card">
+            <h3>ASIN: ${report.asin || 'Unknown'}</h3>
+            <p><strong>Tier:</strong> ${report.tier || 'N/A'}</p>
+            <p><strong>Reviews Analyzed:</strong> ${report.reviewsAnalyzed || 0}</p>
+            <p class="date">Generated: ${date}</p>
+            <a href="/api/reports/${report.id}" download>Download PDF Report</a>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      document.getElementById('reportsContainer').innerHTML = '';
+    }
+
+    // Load dashboard on page load
+    loadDashboard();
+  </script>
+</body>
+</html>
