@@ -45,12 +45,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { tier, email, successUrl, cancelUrl } = req.body;
+    const { tier, email, asin, successUrl, cancelUrl } = req.body;
 
     // Validate inputs
-    if (!tier || !email) {
+    if (!tier || !email || !asin) {
       return res.status(400).json({
-        error: "Missing required fields: tier, email"
+        error: "Missing required fields: tier, email, asin"
       });
     }
 
@@ -112,6 +112,7 @@ export default async function handler(req, res) {
       metadata: {
         tier,
         email,
+        asin,
         reports: tierData.reports.toString()
       }
     });

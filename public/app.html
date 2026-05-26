@@ -440,6 +440,7 @@
           body: JSON.stringify({
             tier: selectedTier,
             email: email,
+            asin: cleanAsin,
             successUrl: `${window.location.origin}/report-processing.html?asin=${cleanAsin}&tier=${selectedTier}`,
             cancelUrl: `${window.location.origin}/app`
           })
