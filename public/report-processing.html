@@ -156,6 +156,10 @@
       try {
         console.log('🚀 Generating report for:', { asin, tier, email });
         
+        // Wait a few seconds first - the webhook may be processing in the background
+        console.log('⏳ Waiting for webhook to process...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
         const response = await fetch('/api/generate-report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -166,10 +170,11 @@
           })
         });
 
+        console.log('📊 Response status:', response.status, response.ok);
         const data = await response.json();
         console.log('📊 Report generation response:', data);
         
-        if (data.success && data.report) {
+        if (response.ok && data.success && data.report) {
           // Report generated successfully!
           console.log('✅ Report generated:', data.report.reportId);
           document.getElementById('successMessage').style.display = 'block';
@@ -185,7 +190,9 @@
             window.location.href = `/dashboard.html?email=${encodeURIComponent(email)}`;
           }, 2000);
         } else {
-          showError(data.error || data.message || 'Failed to generate report. Please try again.');
+          // Show the actual error from backend
+          const errorMsg = data.error || data.details || data.message || 'Failed to generate report. Please try again.';
+          showError(errorMsg);
         }
       } catch (error) {
         console.error('❌ Report generation error:', error);
