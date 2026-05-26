@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generating Your Report - ReviewIntel</title>
+  <title>Generating Your Report - ReviewIntels</title>
   <style>
     * {
       margin: 0;
@@ -90,11 +90,27 @@
       margin-top: 20px;
       display: none;
     }
+
+    button {
+      background: #3366cc;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    button:hover {
+      background: #2952a3;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="logo">ReviewIntels</div>
+    <div class="logo">Reviewintels</div>
     <h1>Generating Your Report</h1>
     <p class="subtitle">Your report is being prepared. This typically takes 30-60 seconds.</p>
     
@@ -104,70 +120,86 @@
     
     <div class="error-message" id="errorMessage"></div>
     <div class="success-message" id="successMessage" style="display: none;">
-      Report ready! Redirecting...
+      Report ready! Redirecting to your dashboard...
     </div>
+    
+    <button id="retryBtn" onclick="location.href = '/app.html'">Return to Checkout</button>
   </div>
 
   <script>
-    // Get session_id from localStorage (stored by app.html before Stripe redirect)
-    const sessionId = localStorage.getItem('stripeSessionId');
+    // Get parameters from URL
     const urlParams = new URLSearchParams(window.location.search);
     const asin = urlParams.get('asin');
     const tier = urlParams.get('tier');
+    
+    // Get email from sessionStorage (stored by app.html before Stripe redirect)
+    const pendingReport = sessionStorage.getItem('pendingReport');
+    let email = '';
+    
+    if (pendingReport) {
+      try {
+        const data = JSON.parse(pendingReport);
+        email = data.email;
+      } catch (e) {
+        console.error('Could not parse pending report:', e);
+      }
+    }
 
-    if (!sessionId) {
-      document.getElementById('errorMessage').textContent = 'Invalid session. Please try again.';
-      document.getElementById('errorMessage').style.display = 'block';
-      document.querySelector('.spinner').style.display = 'none';
+    if (!asin || !tier || !email) {
+      showError('Invalid session. Missing required information (ASIN, tier, or email). Please start over and try again.');
     } else {
-      // Poll for report every 2 seconds (max 60 seconds / 30 attempts)
-      let attempts = 0;
-      const maxAttempts = 30;
+      // Generate the report immediately (not polling for nonexistent endpoint)
+      generateReportNow();
+    }
 
-      const pollForReport = async () => {
-        attempts++;
+    async function generateReportNow() {
+      try {
+        console.log('🚀 Generating report for:', { asin, tier, email });
         
-        try {
-          const response = await fetch(`/api/get-report?session_id=${sessionId}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
+        const response = await fetch('/api/generate-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            asin: asin,
+            tier: tier,
+            email: email
+          })
+        });
 
-          if (response.ok) {
-            const data = await response.json();
-            if (data.reportId || data.report) {
-              // Report is ready!
-              document.getElementById('successMessage').style.display = 'block';
-              document.querySelector('.spinner').style.display = 'none';
-              document.querySelector('.message').style.display = 'none';
-              
-              // Redirect to report view after 1 second
-              setTimeout(() => {
-                window.location.href = `/report.html?id=${data.reportId || data.report.id}`;
-              }, 1000);
-              return;
-            }
-          } else if (response.status === 404) {
-            // Not ready yet, continue polling
-            if (attempts < maxAttempts) {
-              setTimeout(pollForReport, 2000);
-            } else {
-              // Timeout after 60 seconds
-              throw new Error('Report generation took too long. Please try again.');
-            }
-          } else {
-            throw new Error(`Error: ${response.statusText}`);
-          }
-        } catch (error) {
-          document.getElementById('errorMessage').textContent = error.message || 'Error retrieving your report.';
-          document.getElementById('errorMessage').style.display = 'block';
+        const data = await response.json();
+        console.log('📊 Report generation response:', data);
+        
+        if (data.success && data.report) {
+          // Report generated successfully!
+          console.log('✅ Report generated:', data.report.reportId);
+          document.getElementById('successMessage').style.display = 'block';
           document.querySelector('.spinner').style.display = 'none';
           document.querySelector('.message').style.display = 'none';
+          
+          // Clear session data and redirect to dashboard
+          sessionStorage.removeItem('pendingReport');
+          localStorage.removeItem('stripeSessionId');
+          
+          // Redirect to dashboard after 2 seconds
+          setTimeout(() => {
+            window.location.href = `/dashboard.html?email=${encodeURIComponent(email)}`;
+          }, 2000);
+        } else {
+          showError(data.error || data.message || 'Failed to generate report. Please try again.');
         }
-      };
+      } catch (error) {
+        console.error('❌ Report generation error:', error);
+        showError('An error occurred while generating your report: ' + error.message + '. Please try again.');
+      }
+    }
 
-      // Start polling
-      pollForReport();
+    function showError(message) {
+      document.getElementById('errorMessage').textContent = message;
+      document.getElementById('errorMessage').style.display = 'block';
+      document.querySelector('.spinner').style.display = 'none';
+      document.querySelector('.message').style.display = 'none';
+      document.getElementById('retryBtn').style.display = 'block';
+      console.error('❌ Error:', message);
     }
   </script>
 </body>
