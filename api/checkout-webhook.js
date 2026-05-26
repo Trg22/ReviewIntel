@@ -103,18 +103,23 @@ export default async function handler(req, res) {
  */
 async function generateReportAsync(email, asin, tier, stripeSessionId) {
   try {
-    console.log(`[REPORT] Generating report for ${email}, ASIN: ${asin}, Tier: ${tier}, Session: ${stripeSessionId}`);
+    console.log(`[REPORT] 🚀 Generating report for ${email}, ASIN: ${asin}, Tier: ${tier}, Session: ${stripeSessionId}`);
 
     // Step 1: Scrape reviews
+    console.log(`[REPORT] Step 1: Scraping reviews for ASIN ${asin}...`);
     const reviewsData = getMockApifyResponse(asin);
+    console.log(`[REPORT] ✓ Got ${reviewsData.reviews.length} mock reviews for ASIN: ${reviewsData.asin}`);
 
     // Step 2: Analyze with Claude
+    console.log(`[REPORT] Step 2: Analyzing with Claude...`);
     const analysis = await analyzeReviews(reviewsData.reviews, true);
 
     // Step 3: Generate PDF
+    console.log(`[REPORT] Step 3: Generating PDF...`);
     const pdfBuffer = await generatePdfReport(analysis, asin, asin);
 
     // Step 4: Save to database
+    console.log(`[REPORT] Step 4: Saving report to database with ASIN: ${asin}...`);
     const savedReport = await saveReport({
       userEmail: email,
       asin,
@@ -124,8 +129,10 @@ async function generateReportAsync(email, asin, tier, stripeSessionId) {
       stripeSessionId,
       pdfUrl: `https://reviewintels.com/api/reports/${asin}`
     });
+    console.log(`[REPORT] ✓ Saved report ID: ${savedReport.id}, ASIN in DB: ${savedReport.product_asin || 'NOT SET'}`);
 
     // Step 5: Send email
+    console.log(`[REPORT] Step 5: Sending email to ${email}...`);
     const reportUrl = `https://reviewintels.com/api/reports/${savedReport.id}`;
     const emailTemplate = getReportEmailTemplate(
       "Valued Customer",

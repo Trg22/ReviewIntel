@@ -93,6 +93,7 @@ export default async function handler(req, res) {
     // Step 1: Scrape reviews (mock for MVP)
     console.log("Step 1: Scraping reviews...");
     const reviewsData = await scrapeReviews(asin);
+    console.log(`✓ Got ${reviewsData.reviews.length} reviews, ASIN verified: ${reviewsData.asin}`);
 
     // Step 2: Analyze with Claude
     console.log("Step 2: Analyzing with Claude...");
@@ -107,7 +108,7 @@ export default async function handler(req, res) {
     );
 
     // Step 4: Save to database FIRST (to get reportId)
-    console.log("Step 4: Saving to database...");
+    console.log(`Step 4: Saving to database with ASIN: ${asin}...`);
     const savedReport = await saveReport({
       userEmail: email,
       asin,
@@ -118,6 +119,7 @@ export default async function handler(req, res) {
       paymentId,
       orderTimestamp
     });
+    console.log(`✓ Saved report ID: ${savedReport.id}, ASIN field: ${savedReport.product_asin || 'MISSING'}`);
 
     // Step 5: Send email with correct report link
     console.log("Step 5: Sending email...");
