@@ -106,12 +106,12 @@ async function handleGetSampleReviews(req, res) {
  * Handle POST request - generate and send sample report
  */
 async function handleGenerateSample(req, res) {
-  const { email, name } = req.body;
+  const { email, name, asin } = req.body;
 
-  if (!email || !name) {
+  if (!email || !name || !asin) {
     return res.status(400).json({
       error: "Missing required fields",
-      required: ["email", "name"],
+      required: ["email", "name", "asin"],
     });
   }
 
@@ -142,13 +142,13 @@ async function handleGenerateSample(req, res) {
     const pdfBuffer = await generatePdfReport(
       analysis,
       "Example Amazon Product",
-      "B0SAMPLE123"
+      asin
     );
 
     // Save to database FIRST to get the report ID
     const savedReport = await saveReport({
       userEmail: email,
-      asin: "B0SAMPLE123",
+      asin: asin,
       productName: "Example Amazon Product",
       analysis,
       pdfUrl: "https://reviewintel.onrender.com/reports/sample",
