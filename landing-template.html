@@ -640,6 +640,7 @@
     <form class="email-form" onsubmit="handleEmailSubmit(event)">
       <input type="email" id="email-input" placeholder="your@email.com" required>
       <input type="text" id="name-input" placeholder="Your Name" required>
+      <input type="text" id="asin-input" placeholder="Amazon ASIN (optional)" />
       <button type="submit">Get Sample</button>
     </form>
     <div class="loading" id="loading">
@@ -759,6 +760,7 @@
       
       const email = document.getElementById('email-input').value;
       const name = document.getElementById('name-input').value;
+      const asin = document.getElementById('asin-input').value;
 
       trackEvent('sample_requested', { email });
 
@@ -769,7 +771,7 @@
         const response = await fetch('/api/generate-sample', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, name })
+          body: JSON.stringify({ email, name, asin })
         });
 
         const result = await response.json();
@@ -778,6 +780,7 @@
           alert('✅ Sample report sent to ' + email + '! Check your inbox.');
           document.getElementById('email-input').value = '';
           document.getElementById('name-input').value = '';
+          document.getElementById('asin-input').value = '';
           trackEvent('sample_generated_success', { email });
         } else {
           alert('Error: ' + result.error);
