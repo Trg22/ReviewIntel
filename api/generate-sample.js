@@ -108,12 +108,15 @@ async function handleGetSampleReviews(req, res) {
 async function handleGenerateSample(req, res) {
   const { email, name, asin } = req.body;
 
-  if (!email || !name || !asin) {
+  if (!email || !name) {
     return res.status(400).json({
       error: "Missing required fields",
-      required: ["email", "name", "asin"],
+      required: ["email", "name"],
     });
   }
+
+  // Use provided ASIN or generate a random one for sample
+  const finalAsin = asin || `BSAMPLE${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
   // Validate email format
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -142,13 +145,13 @@ async function handleGenerateSample(req, res) {
     const pdfBuffer = await generatePdfReport(
       analysis,
       "Example Amazon Product",
-      asin
+      finalAsin
     );
 
     // Save to database FIRST to get the report ID
     const savedReport = await saveReport({
       userEmail: email,
-      asin: asin,
+      asin: finalAsin,
       productName: "Example Amazon Product",
       analysis,
       pdfUrl: "https://reviewintel.onrender.com/reports/sample",
