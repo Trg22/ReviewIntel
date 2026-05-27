@@ -37,6 +37,7 @@ export async function saveReport(report) {
   }
 
   try {
+    console.log("[saveReport] Attempting to save report with ASIN:", report.asin);
     const { data, error } = await supabase.from("reports").insert([
       {
         user_email: report.userEmail,
@@ -50,11 +51,14 @@ export async function saveReport(report) {
       }
     ]).select(); // THIS IS THE FIX: .select() returns the inserted row with ID
 
-    if (error) throw error;
-    console.log("[saveReport] Inserted report with ID:", data?.[0]?.id);
+    if (error) {
+      console.error("[saveReport] Supabase insert error:", error.message, "Code:", error.code);
+      throw error;
+    }
+    console.log("[saveReport] Inserted report with ID:", data?.[0]?.id, "ASIN:", data?.[0]?.product_asin);
     return data?.[0] || report;
   } catch (error) {
-    console.error("Database error:", error.message);
+    console.error("[saveReport] Failed - falling back to mock mode. Error:", error.message);
     return getMockReport(report);
   }
 }
