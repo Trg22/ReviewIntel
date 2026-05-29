@@ -19,6 +19,7 @@
  */
 
 import { getMockApifyResponse, generateMockReviews } from "./utils/mock-data.js";
+import { scrapeAmazonReviews } from "./utils/apify-service.js";
 import { analyzeReviews } from "./utils/claude-analyzer.js";
 import { generatePdfReport } from "./utils/pdf-generator.js";
 import { sendEmail, getReportEmailTemplate } from "./utils/email-service.js";
@@ -135,16 +136,19 @@ async function handleGenerateSample(req, res) {
       userAgent: req.headers["user-agent"],
     });
 
-    // Generate mock reviews
-    const reviews = generateMockReviews(50);
+    // Generate real reviews from Apify
+    console.log(`[generate-sample] Scraping real reviews for ASIN ${finalAsin}...`);
+    const reviewsData = await scrapeAmazonReviews(finalAsin, 100);
+    const reviews = reviewsData.reviews;
 
-    // Analyze with Claude (or mock)
-    const analysis = await analyzeReviews(reviews, true); // Use mock for MVP
+    // Analyze with Claude
+    console.log(`[generate-sample] Analyzing ${reviews.length} reviews with Claude...`);
+    const analysis = await analyzeReviews(reviews, false); // Use real Claude
 
     // Generate PDF
     const pdfBuffer = await generatePdfReport(
       analysis,
-      "Example Amazon Product",
+      reviewsData.title,
       finalAsin
     );
 
@@ -152,9 +156,9 @@ async function handleGenerateSample(req, res) {
     const savedReport = await saveReport({
       userEmail: email,
       asin: finalAsin,
-      productName: "Example Amazon Product",
+      productName: reviewsData.title,
       analysis,
-      pdfUrl: "https://reviewintel.onrender.com/reports/sample",
+      pdfUrl: "https://reviewintels.com/reports/sample",
       isSampleReport: true,
     });
 
@@ -165,7 +169,7 @@ async function handleGenerateSample(req, res) {
     // Send email with PDF attachment and correct report URL
     const emailTemplate = getReportEmailTemplate(
       name,
-      "Example Amazon Product",
+      reviewsData.title,
       reportUrl
     );
 
