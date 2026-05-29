@@ -9,10 +9,13 @@ import { createClient } from "@supabase/supabase-js";
 
 /**
  * Initialize Supabase client
+ * Uses SERVICE_ROLE_KEY for server-side operations (bypasses RLS)
  */
 function getSupabaseClient() {
   const url = process.env.SUPABASE_URL || "https://your-project.supabase.co";
-  const key = process.env.SUPABASE_ANON_KEY || "your-anon-key";
+  // Use SERVICE_ROLE_KEY for server-side writes (bypasses RLS)
+  // Fall back to ANON_KEY if SERVICE_ROLE_KEY not available
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || "your-key";
 
   if (!url || !key) {
     console.warn("Supabase credentials not configured - using mock mode");
