@@ -211,6 +211,19 @@ app.post("/api/checkout-webhook", async (req, res) => {
   }
 });
 
+// Test Apify endpoint (for debugging)
+app.get("/api/test-apify", async (req, res) => {
+  try {
+    const { default: testApifyHandler } = await import(
+      "./api/test-apify.js"
+    );
+    return testApifyHandler(req, res);
+  } catch (error) {
+    console.error("Error loading test-apify handler:", error);
+    res.status(500).json({ error: "Internal error", details: error.message });
+  }
+});
+
 // Health check endpoint for monitoring
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
