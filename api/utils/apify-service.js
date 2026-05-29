@@ -9,7 +9,7 @@ import axios from "axios";
 import { getMockApifyResponse } from "./mock-data.js";
 
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
-const APIFY_ACTOR_ID = "junglee_com_actor"; // Apify's Amazon reviews actor
+const APIFY_ACTOR_ID = "axesso_data/amazon-reviews-scraper"; // Correct Amazon reviews actor
 
 /**
  * Scrape real Amazon reviews from Apify
@@ -26,10 +26,10 @@ export async function scrapeAmazonReviews(asin, maxReviews = 200) {
   try {
     console.log(`[APIFY] Starting scrape for ASIN: ${asin}`);
 
-    // Build Apify input
+    // Build Apify input for axesso_data/amazon-reviews-scraper
     const apifyInput = {
-      asin: [asin],
-      maxReviews: Math.min(maxReviews, 200), // Apify limit
+      asin: asin,
+      maxReviews: Math.min(maxReviews, 200),
       language: "en",
       proxyConfiguration: {
         useApifyProxy: true
@@ -88,16 +88,16 @@ export async function scrapeAmazonReviews(asin, maxReviews = 200) {
       return getMockApifyResponse(asin);
     }
 
-    // Transform Apify response to ReviewIntel format
+    // Transform axesso actor response to ReviewIntel format
     const reviews = reviewsData.map((review, index) => ({
       id: String(index + 1),
-      title: review.reviewTitle || "",
-      text: review.reviewText || "",
-      rating: parseInt(review.rating) || 3,
-      author: review.reviewerName || "Anonymous",
-      date: review.reviewDate || new Date().toISOString().split('T')[0],
-      helpful: parseInt(review.helpfulCount) || 0,
-      verified: review.isVerified === true,
+      title: review.title || review.reviewTitle || "",
+      text: review.body || review.reviewText || "",
+      rating: parseInt(review.rating) || parseInt(review.stars) || 3,
+      author: review.author || review.reviewerName || "Anonymous",
+      date: review.date || review.reviewDate || new Date().toISOString().split('T')[0],
+      helpful: parseInt(review.helpful) || parseInt(review.helpfulCount) || 0,
+      verified: review.verified === true || review.isVerified === true,
       asin: asin
     }));
 
