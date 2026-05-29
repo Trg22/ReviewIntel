@@ -13,7 +13,7 @@ import { saveReport, logAnalyticsEvent } from "./utils/database.js";
 import { generatePdfReport } from "./utils/pdf-generator.js";
 import { sendEmail, getReportEmailTemplate } from "./utils/email-service.js";
 import { analyzeReviews } from "./utils/claude-analyzer.js";
-import { getMockApifyResponse } from "./utils/mock-data.js";
+import { scrapeAmazonReviews } from "./utils/apify-service.js";
 
 const TIER_LIMITS = {
   'early_bird': 5,
@@ -107,8 +107,8 @@ async function generateReportAsync(email, asin, tier, stripeSessionId) {
 
     // Step 1: Scrape reviews
     console.log(`[REPORT] Step 1: Scraping reviews for ASIN ${asin}...`);
-    const reviewsData = getMockApifyResponse(asin);
-    console.log(`[REPORT] ✓ Got ${reviewsData.reviews.length} mock reviews for ASIN: ${reviewsData.asin}`);
+    const reviewsData = await scrapeAmazonReviews(asin, 200);
+    console.log(`[REPORT] ✓ Got ${reviewsData.reviews.length} reviews for ASIN: ${reviewsData.asin} (source: ${reviewsData.source})`);
 
     // Step 2: Analyze with Claude
     console.log(`[REPORT] Step 2: Analyzing with Claude...`);
