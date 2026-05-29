@@ -22,6 +22,10 @@ function getSupabaseClient() {
     return null;
   }
 
+  // Log which key is being used (ONLY on startup/first call)
+  const keyType = process.env.SUPABASE_SERVICE_ROLE_KEY ? "SERVICE_ROLE_KEY" : "ANON_KEY";
+  console.log(`[getSupabaseClient] Using ${keyType} for Supabase operations`);
+
   return createClient(url, key);
 }
 
