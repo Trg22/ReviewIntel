@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  reviewintels:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      APIFY_API_TOKEN: ${APIFY_API_TOKEN}
+      BREVO_API_KEY: ${BREVO_API_KEY}
+      CLAUDE_API_KEY: ${CLAUDE_API_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
