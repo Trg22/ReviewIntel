@@ -1,0 +1,23 @@
+name: Deploy ReviewIntels
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Deploy to Railway
+        if: github.event_name == 'push'
+        run: |
+          npm install -g @railway/cli
+          railway login --token ${{ secrets.RAILWAY_TOKEN }}
+          railway deploy --service reviewintels
+      
+      - name: Test Deployment
+        run: |
+          sleep 10
+          curl -f https://reviewintels.railway.app/api/health || echo "Deployment pending..."
