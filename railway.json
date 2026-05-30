@@ -1,4 +1,5 @@
 {
+  "builder": "nixpacks",
   "buildCommand": "npm ci",
-  "startCommand": "PORT=8080 npm start"
+  "startCommand": "npm start"
 }
