@@ -3,12 +3,13 @@
   "version": "1.0.0",
   "description": "ReviewIntel MVP - Amazon Review Analysis Platform",
   "type": "module",
-  "main": "pages/index.js",
+  "main": "server.js",
   "scripts": {
     "dev": "node server.js",
     "build": "echo 'Build complete'",
     "test": "node tests/mock-test.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "serve": "node server.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.12.8",
