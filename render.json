@@ -1,0 +1,60 @@
+{
+  "name": "ReviewIntels",
+  "description": "Amazon Review Analysis Platform - Real-time insights from customer feedback",
+  "keywords": [
+    "nodejs",
+    "express",
+    "supabase",
+    "amazon",
+    "reviews",
+    "ai"
+  ],
+  "repo": "https://github.com/Trg22/ReviewIntel",
+  "branch": "main",
+  "buildCommand": "npm ci",
+  "startCommand": "npm start",
+  "env": [
+    {
+      "key": "NODE_ENV",
+      "value": "production"
+    },
+    {
+      "key": "PORT",
+      "value": "3000",
+      "description": "Port for Express server"
+    },
+    {
+      "key": "SUPABASE_URL",
+      "value": "https://feesmokjbrhgltguokpi.supabase.co",
+      "description": "Supabase database URL"
+    },
+    {
+      "key": "SUPABASE_ANON_KEY",
+      "value": "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI",
+      "description": "Supabase public key"
+    },
+    {
+      "key": "SUPABASE_SERVICE_ROLE_KEY",
+      "description": "Supabase service role key (get from Supabase dashboard)"
+    },
+    {
+      "key": "APIFY_TOKEN",
+      "description": "Apify API token"
+    },
+    {
+      "key": "BREVO_API_KEY",
+      "description": "Brevo (Sendinblue) API key"
+    },
+    {
+      "key": "CLAUDE_API_KEY",
+      "description": "Anthropic Claude API key"
+    }
+  ],
+  "services": [
+    {
+      "key": "db",
+      "type": "pserv",
+      "plan": "free"
+    }
+  ]
+}
