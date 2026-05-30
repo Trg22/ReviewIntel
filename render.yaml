@@ -3,8 +3,8 @@ services:
     name: reviewintel
     env: node
     plan: free
-    buildCommand: npm ci
-    startCommand: node server.js
+    buildCommand: npm install
+    startCommand: npm start
     autoDeploy: true
     envVars:
       - key: PORT
@@ -19,6 +19,8 @@ services:
         value: "https://feesmokjbrhgltguokpi.supabase.co"
       - key: SUPABASE_ANON_KEY
         value: "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI"
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       - key: BREVO_API_KEY
         sync: false
       - key: CLAUDE_API_KEY
