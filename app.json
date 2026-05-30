@@ -1,0 +1,28 @@
+{
+  "name": "ReviewIntels",
+  "description": "Amazon Review Analysis Platform",
+  "repository": "https://github.com/Trg22/ReviewIntel",
+  "keywords": [
+    "node",
+    "express",
+    "api"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "SUPABASE_URL": {
+      "description": "Supabase URL",
+      "value": "https://feesmokjbrhgltguokpi.supabase.co"
+    },
+    "SUPABASE_ANON_KEY": {
+      "value": "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI"
+    }
+  }
+}

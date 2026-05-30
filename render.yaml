@@ -1,7 +1,16 @@
 services:
   - type: web
     name: reviewintels
-    env: node
+    runtime: node
     plan: free
     buildCommand: npm ci
     startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: SUPABASE_URL
+        value: https://feesmokjbrhgltguokpi.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI
