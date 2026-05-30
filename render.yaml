@@ -5,9 +5,3 @@ services:
     plan: free
     buildCommand: npm ci
     startCommand: npm start
-    autoDeploy: true
-    envVars:
-      - key: PORT
-        value: "3000"
-      - key: NODE_ENV
-        value: "production"
