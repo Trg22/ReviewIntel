@@ -1,0 +1,23 @@
+name = "reviewintels"
+main = "server.js"
+type = "javascript"
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+
+[env.production]
+name = "reviewintels-prod"
+route = "reviewintels.com/*"
+
+[build]
+command = "npm install"
+cwd = "./"
+
+[env.production.build]
+command = "npm install"
+
+[env.production.vars]
+NODE_ENV = "production"
+SUPABASE_URL = "https://feesmokjbrhgltguokpi.supabase.co"
+SUPABASE_ANON_KEY = "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI"
