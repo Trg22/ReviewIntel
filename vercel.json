@@ -1,0 +1,18 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".",
+  "env": {
+    "NODE_ENV": "production",
+    "SUPABASE_URL": "https://feesmokjbrhgltguokpi.supabase.co",
+    "SUPABASE_ANON_KEY": "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI"
+  },
+  "functions": {
+    "api/**/*.js": {
+      "memory": 3008,
+      "maxDuration": 60
+    },
+    "server.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}
