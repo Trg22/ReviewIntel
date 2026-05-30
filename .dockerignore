@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+.env
+.env.local
+.render-env
+render.yaml
+Procfile
+fly.toml
+vercel.json
+wrangler.toml
+railway.json
+.railway

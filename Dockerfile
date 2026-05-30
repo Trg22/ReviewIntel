@@ -1,21 +1,15 @@
-FROM node:18-alpine
+FROM node:24-slim
 
 WORKDIR /app
 
-# Copy dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --no-fund
 
-# Copy app
 COPY . .
 
-# Explicitly expose port and set env
-ENV PORT=8080
-EXPOSE 8080
+ENV NODE_ENV=production
+ENV PORT=3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:8080/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+EXPOSE 3000
 
-# Start app
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
