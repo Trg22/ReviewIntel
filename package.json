@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
-    "build": "echo 'Build complete'",
+    "build": "npm ls",
     "test": "node tests/mock-test.js",
     "start": "node server.js",
     "serve": "node server.js"
