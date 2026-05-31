@@ -11,10 +11,7 @@ dotenv.config();
 process.env.SUPABASE_URL = "https://feesmokjbrhgltguokpi.supabase.co";
 process.env.SUPABASE_ANON_KEY = "sb_publishable_q_v1PDLqx1fPQhecCKEipw_S0eDm5cI";
 
-// Trim Stripe key
-if (process.env.STRIPE_SECRET_KEY) {
-  process.env.STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY.trim();
-}
+// Stripe key loaded from env
 
 console.log("[STARTUP] ReviewIntel server loading...");
 console.log("[STARTUP] PORT:", process.env.PORT);
@@ -143,6 +140,15 @@ app.post("/api/checkout-webhook", async (req, res) => {
 app.get("/api/test-apify", async (req, res) => {
   try {
     const { default: handler } = await import("./api/test-apify.js");
+    return handler(req, res);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/test-report-direct", async (req, res) => {
+  try {
+    const { default: handler } = await import("./api/test-report-direct.js");
     return handler(req, res);
   } catch (error) {
     res.status(500).json({ error: error.message });

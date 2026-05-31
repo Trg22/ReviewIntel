@@ -8,7 +8,7 @@
 import axios from "axios";
 import { getMockApifyResponse } from "./mock-data.js";
 
-const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
+const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN || "";
 const APIFY_ACTOR_ID = "axesso_data/amazon-reviews-scraper"; // Correct Amazon reviews actor
 
 /**
